@@ -59,7 +59,7 @@ Theoretically, the algorithm doesn't solve the problem because it will generate 
 Before we move on to implement the algorithm, I'd like to provide some intuition on these math symbols.
 
 The rules of ESTM can be encoded into a graph. The node set is \(T\), and there is an edge from \(p\in T\) to \(q\in T\) if and only if a tile with type \(p\) can be placed next to \(q\). \(S_{up},S_{down},S_{left},S_{right}\) are the edge set of 4 graphs that corresponds to 4 different directions. The following is an example of the downward graph extracted from a matrix:
-![1](/assets/2026-03-14-1.png)
+![1](/myblog/assets/2026-03-14-1.png)
 
 During the propagation step, we look at the neighbors at the chosen index and use the graph to determine which type of tile can be placed there. If the chosen tile has type \(p\) and \((p,q)\) is not in \(S_{down}\), then the tile below it can not have type \(q\). So \(N_{down}(p)\) is the set of valid types of tiles that can be place below the tile with type \(p\).
 
@@ -328,7 +328,7 @@ get_image =: 3 : 'y (I."1) 1'
 
 I won't bother writing a GUI for it. [A simple vibe-coded webapp](https://heanyang1.github.io/vctb/matrix-visualizer/visualizer.html) is good enough.
 
-![2](/assets/2026-03-14-2.png)
+![2](/myblog/assets/2026-03-14-2.png)
 
 ## Conclusion
 
