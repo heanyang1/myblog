@@ -17,6 +17,12 @@ I'm not a native English speaker, nor do I speak or write English on a daily bas
 2. There are many programming jargons that do not have a proper translation in Chinese.
 3. fcitx5 doesn't work on my Arch Linux system, and I'm too busy to troubleshoot it or configure another input method.
 
+## About Generative AI Content
+
+1. I'll never use gen AI to write blog posts. Nor will I use it to "polish" my writings because it feels like hiding my identity as a non-english speaker and an awkward person who often struggles to find the correct word to say. I use [languagetool](https://languagetool.org/) to fix typos and nothing else.
+2. I'm not against using gen AI. I won't be able to set up this site without a coding agent, and I'll probably not have the time to write anything if AI didn't automate some of my work.
+3. If gen AI is involved in creating something mentioned in the blog, I'll say that explicitly, otherwise the work is done by hand. This may help if you are allergic to AI content.
+
 ## How to Find Me
 
 I don't have a social media account used in western countries for obvious reasons. If you *really* want to contact me and are clever enough, you will find out how to do it (hint: via email, and you'll have to wait for a long time since I don't check it frequently).
