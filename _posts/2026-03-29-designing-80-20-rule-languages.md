@@ -3,6 +3,8 @@ layout: post
 title:  "Designing 80:20 Rule Languages"
 ---
 
+EDIT: I made it clearer that the second language is not original.
+
 If you calculate a running sum of the sorted frequency of every word in a long book [^note1], the result looks like the following curve:
 ![1](/myblog/assets/2026-03-29/cdf.png)
 
@@ -122,7 +124,7 @@ The probability is about 0.84, so the configuration does give us a language that
 
 ## Another Language
 
-Although fix-length word is necessary in deriving typicality, we can lift the restriction and still get a language that has power-law distribution.
+I was about to end this post when I read [this paper by Conrad and Mitzenmacher](https://ieeexplore.ieee.org/document/1306541). The paper describes a way to generate languages where the length of words are varied and the word count is power-law distribution. Let's have a look at a simple language described in the paper.
 
 **The syntax of the second language**:
 1. There are only three kinds of characters: \(a,b\) and spaces.
@@ -211,13 +213,13 @@ Then we have
 
 Note that \(C_1>0\) and \(\log_\varphi p<0\), therefore the equation holds when \(i\) is sufficiently large.
 
-## Conclusion and Further Reading
+## Conclusion
 
 These two languages can't fully explain the 80:20 pattern in natural languages, because we made an assumption that characters are iid, while characters in natural languages are not independent. For example, If you are asked to fill the blanks in `t_ese t_ree words` with one kind of character, you will choose `h` rather than `e` despite that the probability of `e` in English is higher than that of `h`. A better probabilistic model requires deep understanding of linguistics and better mathematical tools.
 
-The first language is the combination of some examples from chapter 4 of [MacKay's ITILA textbook](https://www.inference.org.uk/mackay/itila/). After introducing typicality, the book continues to introduce Shannon's source coding theorem, which can be described as: we can compress our language without losing too much information, by only encoding the words in the typical set.
+The concept of typical set and AEP are derived from chapter 4 of [MacKay's ITILA textbook](https://www.inference.org.uk/mackay/itila/). The first language is also influenced by its examples. Fixed-length words are widely used in computing, and typical set provides a way to compress them. In fact, the famous [Shannon's source coding theorem](https://en.wikipedia.org/wiki/Shannon%27s_source_coding_theorem) can be described as: we can compress our language without losing too much information, by only encoding the words in the typical set.
 
-The second language is paraphrased from [this paper by Conrad and Mitzenmacher](https://ieeexplore.ieee.org/document/1306541). The paper extends the second language to any probability distribution on a finite set of characters, not just \((p,p^2)\) on two characters.
+I have already mentioned that the second language is paraphrased from [this paper by Conrad and Mitzenmacher](https://ieeexplore.ieee.org/document/1306541). The paper proofs that the power-law distribution applies to languages with any probability distribution on a finite set of characters, not just \((p,p^2)\) on two characters.
 
 ## Appendix: Why the Entropy is Always Less than 2
 
