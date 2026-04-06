@@ -3,6 +3,8 @@ layout: post
 title:  "Solving \"Lights Out\" Puzzles"
 ---
 
+> Update: I did some research, found [the game's Wikipedia page](https://en.wikipedia.org/wiki/Lights_Out_(game)) and [a similar solution](https://arxiv.org/abs/1206.2973), so I won't take the credit of the solution even though I came up with it independently.
+
 The [Racket programming language](https://racket-lang.org/) has a dozen of simple [bundled games](https://pkgs.racket-lang.org/package/games), one of which is the "Lights Out" puzzles. Here is the screenshot of the game and its instructions:
 ![game](/myblog/assets/2026-04-06/lights-out.png)
 
