@@ -6,20 +6,20 @@ title:  "Solving \"Lights Out\" Puzzles"
 The [Racket programming language](https://racket-lang.org/) has a dozen of simple [bundled games](https://pkgs.racket-lang.org/package/games), one of which is the "Lights Out" puzzles. Here is the screenshot of the game and its instructions:
 ![game](/myblog/assets/2026-04-06/lights-out.png)
 
-It's supposed to be a hard game if you are using your human heuristics or logic (or luck?), but this game can actually be solved using a dumb polynomial algorithm, and you probabily have learned it in your linear algrbra class.
+It's supposed to be a hard game if you are using your human heuristics or logic (or luck?), but this game can actually be solved using a dumb polynomial algorithm, and you probably have learned it in your linear algebra class.
 
 ## The Problem
 
-Let's consider a generalized problem: we are playing "Lights out" on an undirected simple graph (i.e. there is at most one edge between two nodes), and clicking a node also toggles lights of its neighbors. Our goal is to turn off all of the lights in the graph.
+Let's consider a generalized problem: we are playing "Lights out" on an undirected simple graph (i.e. there is at most one edge between two nodes), and clicking a node also toggles lights of its neighbors. Our goal is to turn off all the lights in the graph.
 
 Here's an example of 6 nodes \(a,b,c,d,e,f\):
 ![example](/myblog/assets/2026-04-06/example.png)
 
-If you want to play the generalized game and gain some intuition, here's an [app](https://github.com/heanyang1/graph-drawing) written specifically for this blog post. Roughly 90% of the code and every line of the document is written by an coding agent. See Appendix A for its technical details.
+If you want to play the generalized game and gain some intuition, here's an [app](https://github.com/heanyang1/graph-drawing) written specifically for this blog post. Roughly 90% of the code and every line of the document is written by a coding agent. See Appendix A for its technical details.
 
 ## The Solution
 
-Suppose that we have known the solution to the above example. Let \(a'\) be the number of clicks on node \(a\), \(b'\) be the number of clicks on node \(b'\), etc. Then we can have a set of equations by examing each node and its neighbours:
+Suppose that we have known the solution to the above example. Let \(a'\) be the number of clicks on node \(a\), \(b'\) be the number of clicks on node \(b'\), etc. Then we can have a set of equations by examine each node and its neighbors:
 \[\begin{cases}
 (a'+d')\mathrm{mod}\ 2=0, \\
 (b'+d'+e'+f')\mathrm{mod}\ 2=1, \\
@@ -29,7 +29,7 @@ Suppose that we have known the solution to the above example. Let \(a'\) be the 
 (f'+b'+c'+e')\mathrm{mod}\ 2=1. \\
 \end{cases}\tag{1}\]
 
-The first equation can be obtained by looking at the node \(a\). It should remains off, so it should be toggled by even number of times. Its neighbors are node \(d\), and any click to itself and its neighbors will toggle it once, so it will be toggled \(a'+d'\) times. The same is true for the node \(b\), except that it should be turned off by toggling odd number of times, this gives us the \(1\) in the right hand side of the second equation.
+The first equation can be obtained by looking at the node \(a\). It should remain off, so it should be toggled by even number of times. Its neighbors are node \(d\), and any click to itself and its neighbors will toggle it once, so it will be toggled \(a'+d'\) times. The same is true for the node \(b\), except that it should be turned off by toggling odd number of times, this gives us the \(1\) in the right-hand side of the second equation.
 
 Note that all the parameters are in \(\mathbb{Z}_2\) (because of the simple graph constraint), therefore we can get rid of the annoying \(\text{mod}\ 2\) by solving the equations (1) in the field \((\mathbb{Z}_2,+,\cdot)\):
 \[\begin{cases}
@@ -49,7 +49,7 @@ Here's the algorithm that can solves any light-out puzzle:
 1. Get the adjacent matrix \(A\) and the vector \(Y=(y_1,\dots,y_m)\), where \(y_i=1\) if the i-th node is on, otherwise \(y_i=0\).
 2. Solve the set of equations \((A+I)X=Y\) on \(\mathbb{Z}_2\). If it's unsolvable, then the puzzle is not solvable.
 
-I [implemented the algorithm in the app](https://github.com/heanyang1/graph-drawing/blob/main/src/gaussian_elimination.rs) so that the app can show you the solution if there is any. The algorithm is boring so I won't paste it here to waste your time (although it's written by hand and it's about 80 lines of code).
+I [implemented the algorithm in the app](https://github.com/heanyang1/graph-drawing/blob/main/src/gaussian_elimination.rs) so that the app can show you the solution if there is any. The algorithm is boring, so I won't paste it here to waste your time (although it's written by hand, and it's about 80 lines of code).
 
 ## Conclusion
 
@@ -68,7 +68,7 @@ The project is more challenging than expected as
 4. As a result, technical debt accumulates, and you will get an unmaintainable, buggy app.
 5. This gets worse when the agent has to compress the context and most of its experience are lost.
 
-Maybe I should add something like "Refactor the code when it smells" to the agent's skills, but I doubt that it has the correct judgement. I'll try that in later projects.
+Maybe I should add something like "Refactor the code when it smells" to the agent's skills, but I doubt that it has the correct judgment. I'll try that in later projects.
 
 ## Appendix B: Why Solving in \(\mathbb{Z}_2\)
 
