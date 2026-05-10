@@ -15,7 +15,7 @@ When I was in college, I had plenty of time to finish online courses I want to l
 I'm not a native English speaker, nor do I speak or write English on a daily basis. This blog is written in English for the following reasons:
 1. Wider audience. I suppose everyone who are interested in my blog is able to read English without problem, but not all of them knows Chinese.
 2. There are many programming jargons that do not have a proper translation in Chinese.
-3. fcitx5 doesn't work on my Arch Linux system, and I'm too busy to troubleshoot it or configure another input method.
+3. ~~fcitx5 doesn't work on my Arch Linux system, and I'm too busy to troubleshoot it or configure another input method.~~ The problem is solved. It's not working because I haven't installed `fcitx5-gtk` and `fcitx5-qt`.
 
 ## About Generative AI Content
 
