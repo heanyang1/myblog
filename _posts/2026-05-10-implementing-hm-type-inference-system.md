@@ -244,6 +244,6 @@ We need to proof [the progress and preservation theorem](https://stanford-cs242.
 
 By saying \(\Gamma\vdash e:\tau\), we mean that \(\Gamma\vdash e:\tau'\dashv C\), and \(\tau=\mathrm{generalize}(\tau',C)\).
 
-I'll try to proof the theorems in later posts. This means that I didn't have the proof yet, and everything presented in this blog post may be wrong. But I'm already exhausted after spending every weekend of the past month trying to make a interpreter that works [^note2].
+I'll try to proof the theorems in later posts. This means that I didn't have the proof yet, and everything presented in this blog post may be wrong. But I'm already exhausted after spending every weekend of the past month trying to make an interpreter that works [^note2].
 
-[^note2]: I haven't implement every features in Lam for the same reason. Also, recursive types and modules aren't interesting from type inference perspective.
+[^note2]: I haven't implemented every feature in Lam for the same reason. Also, recursive types and modules aren't interesting from type inference perspective.
