@@ -3,7 +3,7 @@ layout: post
 title:  "Rewriting My Interpreter in Haskell"
 ---
 
-As my daily job gets more and more demanding, I won't stretch myself too hard like what I have done in [the previous post](/myblog/2026/05/10/implementing-hm-type-inference-system.html). So this weekend I rewrote the entire Lam interpreter using Haskell ... with an AI agent.
+As my daily job gets more and more demanding, I won't stretch myself too hard like what I have done in [the previous post](/myblog/2026/05/10/implementing-hm-type-inference-system.html). So this weekend I [rewrote the entire Lam interpreter using Haskell](https://github.com/heanyang1/interpreter/commit/8f4e4716c0dfecf19b091c0d362cb24fcb989db5) ... with an AI agent.
 
 ## The Process
 
@@ -13,6 +13,7 @@ I use OpenCode and its free tier models, mostly DeepSeek V4. The prompt is simpl
 The rewriting session lasted for a few hours. The agent get stuck occasionally:
 1. It had a hard time writing the parser. This is understandable since there is no reference implementation of the parser.
 2. The interpreter went into infinite loop when running tests. The agent solved it in about an hour without intervention.
+3. The agent couldn't implement the step-by-step evaluation, and it decided to implement a simplified evaluation process without asking me.
 
 When all tests are passed, I asked the agent to fuzz the new interpreter: write a Python script to generate random Lam expression and check whether the Rust version and the Haskell version produce the same output. It generated and tested 20k random Lam programs on both versions, fixing some bugs along the way. All tests passed, so we are confident that the two versions should have the same behavior.
 
@@ -21,6 +22,50 @@ When all tests are passed, I asked the agent to fuzz the new interpreter: write 
 The generated code is beautiful. It doesn't have the messiness feature of AI-generated code. I think the reason is that the Rust interpreter is clean enough, and Haskell is less noisy than C-like languages.
 
 I'll paste a couple of excerpts from the Rust and Haskell versions here. The code snippet are supposed to do the same job so you can compare them.
+
+You have to write bizarre parser DSL in both versions. In my opinion `parsec` is better because it's at least part of the Haskell language and the compile error is more informative than "there is something wrong at line 2145 of the generated Rust code":
+{% highlight rust %}
+LetRec: Box<Expr> = {
+    <e:Let> => e,
+    "letrec" <x:Variable> "=" <evar:LetRec> "in" <ebody:LetRec> => {
+        let xclone = x.clone();
+        let lam = Box::new(Expr::Lam { x: xclone, e: ebody });
+        let arg = Box::new(Expr::Fix { x, e: evar });
+        Box::new(Expr::App { lam, arg })
+    }
+};
+
+Let: Box<Expr> = {
+    <e:Func> => e,
+    "let" <x:Variable> "=" <e_x:Let> "in" <e_in:Let> => Box::new(Expr::Let { x, e_x, e_in }),
+};
+{% endhighlight rust %}
+
+{% highlight haskell %}
+letrecExpr :: P Expr
+letrecExpr =
+    try (do
+        kw "letrec"
+        x <- var
+        op "="
+        e1 <- letrecExpr
+        kw "in"
+        e2 <- letrecExpr
+        return (EApp (ELam x e2) (EFix x e1)))
+    <|> letExpr
+
+letExpr :: P Expr
+letExpr =
+    try (do
+        kw "let"
+        x <- var
+        op "="
+        e1 <- letExpr
+        kw "in"
+        ELet x e1 <$> letExpr)
+    <|> funExpr
+{% endhighlight haskell %}
+
 
 The Haskell version uses recursion to iterate over the constraint, a common trick in pure functional programming:
 {% highlight rust %}
@@ -195,6 +240,6 @@ instance ToGraph Expr where
 
 ## Conclusion
 
-Haskell will probably be my go-to language when the dependencies are simple and the performance doesn't matter, such as writing indie compilers and interpreters.
+AI have lowered the barrier to learn and use Haskell. Before the AI agent era, I thought I'll never be able to write anything non-trivial in Haskell because of its weird Monadic syntax and incomprehensible error message. These are no longer the problem now as AI agents can analyze and fix complex compile error for me.
 
-Before the AI agent era, I thought I'll never be able to write anything non-trivial in Haskell because of its weird Monadic syntax and incomprehensible error message. These are no longer the problem now as AI agents get good enough at Haskell (and solving problems in general).
+Haskell will probably be my go-to language when the dependencies are simple and the performance doesn't matter, such as writing indie compilers and interpreters.
