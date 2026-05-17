@@ -19,9 +19,16 @@ I'm not a native English speaker, nor do I speak or write English on a daily bas
 
 ## About Generative AI Content
 
-1. I'll never use gen AI to write blog posts. Nor will I use it to "polish" my writings because it feels like hiding my identity as a non-english speaker and an awkward person who often struggles to find the correct word to say. I use [languagetool](https://languagetool.org/) to fix typos and nothing else.
+1. I'll never use gen AI to write blog posts. Nor will I use it to "polish" my writings because it feels like hiding my identity as a non-English speaker and an awkward person who often struggles to find the correct word to say. I use [languagetool](https://languagetool.org/) to fix typos and nothing else.
 2. I'm not against using gen AI. I won't be able to set up this site without a coding agent, and I'll probably not have the time to write anything if AI didn't automate some of my work.
 3. If gen AI is involved in creating something mentioned in the blog, I'll say that explicitly, otherwise the work is done by hand. This may help if you are allergic to AI content.
+
+## About My Job
+
+Currently, I work as a compiler engineer. Here are the things you can know about my job:
+1. I won't (and not allowed to) share any details about my work.
+2. My job is completely unrelated to this blog and anything I posted on GitHub.
+3. I'm working 60+ hours a week, so I don't have much time writing this blog.
 
 ## How to Find Me
 
