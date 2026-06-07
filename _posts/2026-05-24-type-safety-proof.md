@@ -1,7 +1,11 @@
 ---
 layout: post
-title:  "Type Safety Proof (Part 1)"
+title:  "Type Safety Proof (Part 3)"
 ---
+
+> This is the third post of a series about implementing and proving a HM type inference system. Here's the [part 2](/myblog/2026/05/17/rewriting-interpreter-in-haskell.html).
+>
+> Edited at 6/7: the agent-coding mess is cleaned up. The proof should be correct, but I don't have enough brain power to read it. I'll update again when I fully understand the proof.
 
 I'm trying to use an AI agent to write the type safety proof for [my interpreter](https://github.com/heanyang1/interpreter) in [Lean 4](https://lean-lang.org). Here's the progress so far.
 
@@ -60,15 +64,41 @@ inductive Typing : Ctx → Expr → Ty → Prop where
 
 So it's a fancier version of [CS242 final](https://stanford-cs242.github.io/f19/assignments/final/lean/), not a proof of the type inference algorithm.
 
-What's worse, the simplified de Bruijn substitution schema is completely ignored. It's annoying that the agent uses the canonical substitution rule without my approval. Maybe there is a bug in the rules and the agent don't know how to prove it, but at lease it should say "I'm not able to prove your simplified schema" rather than presenting something that looks similar but completely different and say "This is what you want".
+What's worse, the agent gets confused about the simplified de Bruijn substitution schema and creating something weird mixture of list and a function that are supposed to be the context:
+{% highlight lean %}
+abbrev Ctx := Nat → Option Ty
 
-## Conclusion
+def emptyCtx : Ctx := fun _ => none
 
-Formal verification is hard, even with the help of AI. AI agents are good enough at proving theorems, but the things they prove may not be the things you want. To make sure that AI proves the correct thing, we have to design the structure and theorems manually. That part never gets easier.
+def extendCtx (τ : Ty) (Γ : Ctx) : Ctx :=
+  fun i =>
+    match i with
+    | 0 => some τ
+    | i+1 => Γ i
 
-As for this project, I'll try to finish the substitution part by hand, and see if I can use the result to further prove the type inference algorithm.
+-- It's using both the list of type and the context
+theorem weaken_prep (Δ : List Ty) (Γ : Ctx) (e : Expr) (τ : Ty) (h : Typing (prepCtx Δ emptyCtx) e τ) : Typing (prepCtx Δ Γ) e τ := by
+-- ...
+{% endhighlight lean %}
 
-## Appendix: Looking at the Generated Proof
+## Second Attempt
+
+I decided to give the agent another chance: cleaning up the mess and run it again. Specifically, I
+1. Gave up the idea that the agent can prove the correctness of the algorithm and the type safety in one shot.
+2. Removed anything related to `Ctx`. Just use a list of types as context.
+3. Added a constraint that the de Bruijn index of variables should always be smaller than the length of the list (described in the `Fin Γ.length` below). This makes it impossible to have free variables in expressions:
+{% highlight lean %}
+inductive Typing : List Ty → Expr → Ty → Prop where
+  -- ...
+  | var (Γ : List Ty) (i : Fin Γ.length) (τ : Ty) (h : Γ.get i = some τ) : Typing Γ (Expr.var i) τ
+{% endhighlight lean %}
+4. Tell the agent to remove every `sorry` in the file.
+
+During this attempt, I noticed that sometimes the agent provides a partly proved code, then it gets frustrated, resets the edit and starts it from scratch, although it's clear that the agent doesn't make any mistake organizing the proof, and it is able to continue the proof in a fresh new session.
+
+After resetting context for a few times, the agent successfully removed every `sorry` in the file, so I got a correct type safety proof. The entire proof costs about 15￥.
+
+## Looking at the Generated Proof
 
 Let's have a look at the proof to understand how it works.
 
@@ -84,9 +114,9 @@ inductive Step : Expr → Expr → Prop where
   -- ...
 {% endhighlight lean %}
 
-Progress uses structural induction over the expression:
+Progress uses structural induction over the expressions. Every case corresponds to a `Step` or a `Val`:
 {% highlight lean %}
-theorem progress (e : Expr) (τ : Ty) (h : Typing emptyCtx e τ) : Value e ∨ ∃ e', Step e e' := by
+theorem progress (e : Expr) (τ : Ty) (h : Typing [] e τ) : Value e ∨ ∃ e', Step e e' := by
   induction e generalizing τ with
   | num n => left; exact Value.num
   | addOp op l r ih_l ih_r =>
@@ -101,56 +131,55 @@ theorem progress (e : Expr) (τ : Ty) (h : Typing emptyCtx e τ) : Value e ∨ �
       · right; exact ⟨_, Step.addL op l l' r hl'⟩ -- If `Step l e'`, we use `addL`.
   -- ...
 {% endhighlight lean %}
-
-Preservation uses structural induction over `Step`. Most type information is easy to get since it's already annotated:
+where `canonical_num` says: if an expression has type `Ty.num`, then it must be a `Expr.num`:
 {% highlight lean %}
-theorem preservation (e e' : Expr) (τ : Ty) (h : Typing emptyCtx e τ) (hstep : Step e e') : Typing emptyCtx e' τ := by
+theorem canonical_num (e : Expr) (hv : Value e) (ht : Typing [] e Ty.num) : ∃ n : Int, e = Expr.num n := by
+  cases hv
+  -- Using the definition of `Val.num` and get an `Expr.num n`.
+  case num => rename_i n; exact ⟨n, rfl⟩
+  -- Using the definition of `Val.var` and get an `Fin [].length`, which forms a contradiction.
+  case var =>
+    cases ht
+    · rename_i i h -- 
+      exact absurd i.isLt (Nat.not_lt_zero _)
+  all_goals { cases ht }
+{% endhighlight lean %}
+
+Preservation uses structural induction over `Step`. Most type information is easy to get since it's already annotated. The tricky part is the substitution when applying lambda expressions.
+{% highlight lean %}
+theorem preservation (e e' : Expr) (τ : Ty) (h : Typing [] e τ) (hstep : Step e e') : Typing [] e' τ := by
   induction hstep generalizing τ with
   | addL op e₁ e₁' e₂ hstep' ih =>
     match h with
     -- `h` is `addOp`, so the old expression has type `num`. Then we need to prove that
     -- the new expression also has type `num`
-    | Typing.addOp _ _ _ _ hl hr => exact Typing.addOp emptyCtx op _ _ (ih Ty.num hl) hr
+    | Typing.addOp _ _ _ _ hl hr => exact Typing.addOp [] op _ _ (ih Ty.num hl) hr
   | addR op v₁ e₂ e₂' hv hstep' ih =>
     match h with
-    | Typing.addOp _ _ _ _ hl hr => exact Typing.addOp emptyCtx op _ _ hl (ih Ty.num hr)
+    | Typing.addOp _ _ _ _ hl hr => exact Typing.addOp [] op _ _ hl (ih Ty.num hr)
   | addAdd n₁ n₂ =>
     match h with
-    | Typing.addOp _ _ _ _ _ _ => exact Typing.num emptyCtx (n₁ + n₂)
+    | Typing.addOp _ _ _ _ _ _ => exact Typing.num [] (n₁ + n₂)
   -- ...
-{% endhighlight lean %}
-
-The tricky part is the substitution when applying lambda expression.
-{% highlight lean %}
--- In Step
-  | appLam (τ : Ty) (body v : Expr) (hv : Value v) : Step (Expr.app (Expr.lam τ body) v) (subst 0 v body)
-
--- In progress
-  | lam σ body ih_body => left; exact Value.lam
-  | app f a ih_f ih_a =>
-    match h with
-    | Typing.app _ _ _ τ₁ τ₂ hf ha =>
-      rcases ih_f (Ty.fn τ₁ τ₂) hf with (hvf | ⟨f', hf'⟩)
-      · match hf with
-        | Typing.lam _ _ body _ hb =>
-          rcases ih_a τ₁ ha with (hva | ⟨a', ha'⟩)
-          · right; exact ⟨_, Step.appLam τ₁ body a hva⟩
-          · right; exact ⟨_, Step.appR (Expr.lam τ₁ body) a a' Value.lam ha'⟩
-      · right; exact ⟨_, Step.appL f f' a hf'⟩
-
--- In preservation
   | appLam τ₁ body v hv =>
     match h with
     | Typing.app _ _ _ _ τ₂ hf ha =>
       match hf with
-      | Typing.lam _ _ _ _ hb => exact subst_typing body v τ₁ τ₂ hb ha
+      | Typing.lam _ _ _ _ hb => exact subst_typing v body τ₂ τ₁ (@List.nil Ty) hb ha
+  -- ...
 {% endhighlight lean %}
 
-`subst_typing` says if \(\tau\vdash e_{\mathsf{body}}:\tau_{\mathsf{out}}\) and \(\vdash s:\tau\), then \(\vdash[\left<0\right>\to s]_D\,e_{\mathsf{body}}:\tau_{\mathsf{out}}\).
+`subst_typing` says if \(\Gamma,\sigma\vdash e:\tau\) and \(\vdash s:\sigma\), then \(\Gamma\vdash[\left<|\Gamma|\right>\to s]_D\,e_{\mathsf{body}}:\tau\).
 {% highlight lean %}
-theorem subst_typing (body s : Expr) (τ τ_out : Ty)
-    (h_body : Typing (extendCtx τ emptyCtx) body τ_out) (h_s : Typing emptyCtx s τ) : Typing emptyCtx (subst 0 s body) τ_out := by
-    -- ...
+theorem subst_typing (s e : Expr) (τ σ : Ty) (Γ : List Ty)
+    (h_e : Typing (Γ ++ [σ]) e τ) (h_s : Typing [] s σ) : Typing Γ (subst (Γ.length) s e) τ := by
+  induction e generalizing Γ τ with
+  | num n => cases h_e; case num => simp [subst]; exact Typing.num Γ n
+  | tru => cases h_e; case tru => simp [subst]; exact Typing.tru Γ
 {% endhighlight lean %}
 
-Its proof contains hundreds of lines of incomprehensible theorems, and I'm not going to waste my (and your) time to read it.
+(To be continued)
+
+## Conclusion
+
+Formal verification is hard, even with the help of AI. Agents are extremely capable of removing `sorry`s in the proof (if it is possible to do so), but they will go astray if you let them design structures and theorems. Designing the correct structure to proof never gets easier.
