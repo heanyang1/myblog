@@ -3,7 +3,7 @@ layout: post
 title:  "Rewriting My Interpreter in Haskell (Part 2)"
 ---
 
-> This is the second post of a series about implementing and proving a HM type inference system. Here are the [part 1](/myblog/2026/05/10/implementing-hm-type-inference-system.html) and [part 3](/myblog/2026/05/24/type-safety-proof.html).
+> This is the second post of a series about implementing and proving a HM type inference system. Here are [the previous](/myblog/2026/05/10/implementing-hm-type-inference-system.html) and [the next](/myblog/2026/05/24/type-safety-proof.html) posts.
 
 As my daily job gets more and more demanding, I won't stretch myself too hard like what I have done in [the previous post](/myblog/2026/05/10/implementing-hm-type-inference-system.html). So this weekend I [rewrote the entire Lam interpreter using Haskell](https://github.com/heanyang1/interpreter/commit/8f4e4716c0dfecf19b091c0d362cb24fcb989db5) ... with an AI agent.
 

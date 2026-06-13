@@ -3,7 +3,9 @@ layout: post
 title:  "Implementing Hindley-Milner Type Inference System (Part 1)"
 ---
 
-> This is the first post of a series about implementing and proving a HM type inference system. Here's the [part 2](/myblog/2026/05/17/rewriting-interpreter-in-haskell.html).
+> This is the first post of a series about implementing and proving a HM type inference system. Here's [the next](/myblog/2026/05/17/rewriting-interpreter-in-haskell.html) post.
+>
+> Edit on 6/13: I found and fixed some issues in the typing rules when reading the proof. I won't say where it is and challenge you to find it without looking at the git history :)
 
 About a year ago, I took [Stanford CS242 (fall 2019)](https://stanford-cs242.github.io/f19/) course and did the [assignment](https://stanford-cs242.github.io/f19/assignments/assign4/) to complete an interpreter for a simple ML-like language (it doesn't have a name, and I'll call it "Lam" as the file extension is `.lam`). It's a bit disappointed that the assignment didn't mention [Hindley-Milner type inference algorithm](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system), so I implemented one in [my Rust version of the interpreter](https://github.com/heanyang1/interpreter/tree/hm-inference).
 
@@ -79,7 +81,7 @@ in f true 1
 
 We also need to change the rules to represent the context as a stack. The type of the variable with index `n` is the `n`-th last element of the stack:
 \[\frac{}{\Gamma,\tau\vdash \left<0\right>:\tau\dashv\varnothing}\ (\text{T-Var-Term}),\quad\frac{\Gamma=\tau^*,\tau\quad\tau^*\vdash \left<n\right>:\tau'\dashv C}{\Gamma\vdash \left<n+1\right>:\tau'\dashv\varnothing}\ (\text{T-Var-Next}),\]
-\[\frac{\text{fresh}\ \tau\quad\Gamma,\tau \vdash e : \tau_{\mathsf{ret}}\dashv C}{\Gamma \vdash (\lambda\,\_\, .\, e) : \tau \to \tau_{\mathsf{ret}}\dashv C}\ (\text{T-Lam}),\quad\frac{\text{fresh}\ \tau'\quad\Gamma,\tau' \vdash e : \tau\dashv C}{\Gamma \vdash \mathsf{fix}\ \_\, .\, e : \tau'\dashv C,\tau'=\tau},(\text{T-Fix})\]
+\[\frac{\text{fresh}\ \tau\quad\tau,\Gamma\vdash e : \tau_{\mathsf{ret}}\dashv C}{\Gamma \vdash (\lambda\,\_\, .\, e) : \tau \to \tau_{\mathsf{ret}}\dashv C}\ (\text{T-Lam}),\quad\frac{\text{fresh}\ \tau'\quad\tau',\Gamma \vdash e : \tau\dashv C}{\Gamma \vdash \mathsf{fix}\ \_\, .\, e : \tau'\dashv C,\tau'=\tau},(\text{T-Fix})\]
 
 ### ADT
 
@@ -96,7 +98,7 @@ The type annotation of sum types can also be omitted. The type will be known the
 \[\frac{\Gamma \vdash e : \tau_{L}}{\Gamma \vdash \mathsf{inj}\ e = L\ \mathsf{as}\ \tau_{L} + \tau_{R} : \tau_{L} + \tau_{R}}\Rightarrow\frac{\text{fresh}\ \tau_R\quad\Gamma \vdash e : \tau_{L}\dashv C}{\Gamma \vdash \mathsf{inj}\ e = L : \tau_{L} + \tau_{R}\dashv C},\tag{T-Inject-L}\]
 \[\begin{aligned}
 & \frac{\Gamma \vdash e : \tau_{L} + \tau_{R} \quad \Gamma, x_{L} : \tau_{L} \vdash e_{L} : \tau \quad \Gamma, x_{R} : \tau_{R} \vdash e_{R} : \tau}{\Gamma \vdash \mathsf{case}\ e\,\{L(x_{L}) \to e_{L} \mid R(x_{R}) \to e_{R}\} : \tau} \\
-\Rightarrow &\ \frac{\text{fresh}\ \tau_L,\tau_R,\quad\Gamma \vdash e : \tau_{\mathsf{sum}} \dashv C_{\mathsf{sum}} \quad \Gamma,\tau_{L} \vdash e_{L} : \tau_L'\dashv C_L \quad \Gamma,\tau_{R} \vdash e_{R} : \tau_R'\dashv C_R}{\Gamma \vdash \mathsf{case}\ e\,\{L(\_) \to e_{L} \mid R(\_) \to e_{R}\} : \tau_L'\dashv C_{\mathsf{sum}},C_L,C_R,\tau_{\mathsf{sum}}=\tau_{L} + \tau_{R},\tau_L'=\tau_R'}.
+\Rightarrow &\ \frac{\text{fresh}\ \tau_L,\tau_R,\quad\Gamma \vdash e : \tau_{\mathsf{sum}} \dashv C_{\mathsf{sum}} \quad \tau_{L},\Gamma \vdash e_{L} : \tau_L'\dashv C_L \quad \tau_{R},\Gamma \vdash e_{R} : \tau_R'\dashv C_R}{\Gamma \vdash \mathsf{case}\ e\,\{L(\_) \to e_{L} \mid R(\_) \to e_{R}\} : \tau_L'\dashv C_{\mathsf{sum}},C_L,C_R,\tau_{\mathsf{sum}}=\tau_{L} + \tau_{R},\tau_L'=\tau_R'}.
 \end{aligned}\tag{T-Case}\]
 
 ## How to Use the Rules
