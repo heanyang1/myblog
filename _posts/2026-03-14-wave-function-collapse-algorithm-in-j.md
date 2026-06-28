@@ -133,7 +133,7 @@ adj_mat =: 3 : '+./ (image edge_list y) (unit"1) 2 $ max'
 NB.                                              2 $ max  Is the size of matrix unit
 NB.                 (image edge_list y)                   Creates the edge list which
 NB.                                                       is a list of pairs
-NB.                                 (unit"1)              Calculate `unit` for each
+NB.                                     (unit"1)          Calculate `unit` for each
 NB.                                                       pair of the left, generating
 NB.                                                       a list of matrix unit
 NB.             +./                                       Add all of the matrix units
@@ -209,7 +209,7 @@ We use [roulette wheel selection](https://en.wikipedia.org/wiki/Fitness_proporti
 NB. Roulette wheel selection assuming that input is a PMF
 roulette =: 3 : '(((? 2147483647) % 2147483647) < +/\ y) I. 1'
 NB.                 ? 2147483647                                Generates a random integer
-NB.                               % 2147483647                  Divide them by maximum value
+NB.                               % 2147483647                  Creates a random number between 0 and 1
 NB.                                               +/\ y         Calculate the running sum of the PMF
 NB.                                             <               Create a list that is 1 after some
 NB.                                                             random element
