@@ -5,7 +5,7 @@ title:  "Tacitfy My J Program"
 
 I need to have a break from the HM type inference crusade, so today I'm doing something different: refactoring the program I wrote at [my very first blog post](/myblog/2026/03/14/wave-function-collapse-algorithm-in-j.html) and learn more about tacit programming J.
 
-As a person from functional programming background, I'll use concepts in FP to explain things I learn.
+As a person from functional programming background, I'll use concepts in FP to explain things I learned.
 
 Here's our patient:
 {% highlight j %}
@@ -99,7 +99,9 @@ Exercise for readers: tacitfy following verbs using `@` or `@:`:
 
 ## Hook
 
-[Hook](https://code.jsoftware.com/wiki/Vocabulary/hook) conjunction lets you combine two verbs and use it as one verb. Hooks are invisible in implicit J, in other words, the following two verbs are equivalent:
+[Hook](https://code.jsoftware.com/wiki/Vocabulary/hook) conjunction lets you combine two verbs and use it as one verb.
+
+Dyadic hooks are invisible in implicit J, in other words, the following two verbs are equivalent:
 {% highlight j %}
 count1 =: 4 : '+/ y  = ,  x' NB. evaluates `, x`, then evaluates `y = (,x)`
 count2 =: 4 : '+/ y (= ,) x' NB. evaluates `y v x` where `v =: =,`
@@ -135,11 +137,19 @@ The combined hook continues to absorb the verbs and eventually there is only one
 x ((((v_1 v_2) v_3) ...) v_n) y
 ```
 
-Exercise for readers: tacitfy the following verbs using hooks:
-1. `min_mask`
-2. `replace_zero`
-3. `posterior`
-4. `valid_or_reset`
+Monadic hooks are specialized version of dyadic hooks where `x` are equal to `y`. For example,
+{% highlight j %}
+min_mask =: 3 : 'y = <./ , y'
+{% endhighlight %}
+
+Can be refactored to
+{% highlight j %}
+min_mask =: (= <./),
+{% endhighlight %}
+
+Note that `(= <./)` acts as a dyadic hook and its `x` and `y` are the original `y` and `,y` respectively.
+
+Exercise for readers: tacitfy `valid_or_reset` using hooks.
 
 ## Fork
 
@@ -182,9 +192,10 @@ To use the fork conjunction, we must have a full binary tree like this one:
 
 Where `2 v y` is `y`, which is the behavior of the [`]` (right)](https://code.jsoftware.com/wiki/Vocabulary/squarert) verb.
 
-Hence
+Therefore
 {% highlight j %}
 w =: 2&(] * ^.)
+entropy =: +/ @: - @ (2&(] * ^.))
 {% endhighlight %}
 
 We can also use monadic fork to solve it. `(f g h) y` is equivalent to `(f y) g (h y)`, or
@@ -212,14 +223,165 @@ Hence
 w =: ] * (2&^.)
 {% endhighlight %}
 
-Exercise for readers: tacitfy `edge_list` using fork.
+Exercise for readers:
+1. Tacitfy `edge_list` using fork.
+2. Prove that you can always use a fork whenever you need a hook.
+
+## Modifier Train
+
+We can generalize the idea of fork by replacing verbs with other kinds of words. For example, a NVV fork `N v w` where `N` is a noun `v,w` are verbs has the following AST:
+```
+  v
+ / \
+N   w
+   / \
+  x   y
+```
+
+Let's take a look at `first`:
+{% highlight j %}
+first =: 3 : '(i.$y) = (,y) i. 1'
+{% endhighlight %}
+
+To begin with, we decomposed it with a fork:
+{% highlight j %}
+first =: (i. @: $) = w
+w =: 3 : '(,y) i. 1'
+{% endhighlight %}
+
+`w` has the following AST:
+```
+  i.
+ / \
+,   1
+ \
+  y
+```
+
+To use the NVV fork, we swap the parameters of `i.` using `~`:
+```
+  i.~
+ / \
+1   ,
+     \
+      y
+```
+
+So we have
+{% highlight j %}
+w = 1 i.~ ,
+first =: (i. @: $) = 1 i.~ ,
+{% endhighlight %}
+
+Such generalized fork are called modifier trains. You can find more examples of modifier trains [here](https://code.jsoftware.com/wiki/Vocabulary/ModifierTrains).
+
+Exercise for readers: Tacitfy `posterior` with a NVV fork.
+
+## Nested Forks
+
+You can nest forks to form a large AST. The AST looks like a Huffman tree of verbs (see the vocabulary page of fork for the AST).
+
+The verb
+{% highlight j %}
+replace_zero =: 3 : 'y + _ * 0 =/ y'
+{% endhighlight %}
+has AST
+```
+  +
+ / \
+y   *
+   / \
+  _   =/
+     / \
+    0   y
+```
+
+We can fit the AST into three forks:
+```
+   +
+  / \
+ /   \
+]     *
+ \   / \
+  y _   =/
+       / \
+      0   ]
+           \
+            y
+```
+
+So this becomes
+{% highlight j %}
+replace_zero =: ] + _ * 0 =/ ]
+{% endhighlight %}
+
+Exercise for readers: To tacitfy `unit`, we split it using a fork:
+{% highlight j %}
+unit =: inc = idx_unit
+inc =: 4 : 'i.y' NB. We will handle this later
+idx_unit =: 4 : 'x +/ . * (1{y), 1'
+{% endhighlight %}
+
+Tacitfy `idx_unit` using nested forks.
+
+## Cap the Fork
+
+Let's finish the `inc` verb above:
+{% highlight j %}
+inc =: 4 : 'i.y'
+{% endhighlight %}
+
+Suppose we want to use a dyadic fork:
+```
+   i.
+    \
+     ]
+    / \
+   x   y
+```
+and we realize that the AST doesn't have the left branch. A way to resolve this is to use the dummy verb [`[:` (cap)](https://code.jsoftware.com/wiki/Vocabulary/squarelfco). `x ([: u v) y` is equivalent to `u (x v y)`, or
+```
+   u
+    \
+     v
+    / \
+   x   y
+```
+which is exactly what we want. So
+{% highlight j %}
+inc =: [: i. ]
+{% endhighlight %}
+
+You can achieve the same result using `@:` since `x (u @: v) y` is also `u (x v y)`.
+
+## Tacit Translator
+
+J has a tacit translator that translates implicit definition to tacit definition. You can use it by defining a verb as `13` instead of `3` or `4`:
+{% highlight j %}
+   count =: 13 : '+/ y = , x'
+   count
+[: +/ ] = [: , [
+{% endhighlight %}
+
+The translator almost always generates forks, so it may not be useful in finding the real structure of the program.
 
 ## Outro
 
 - In general, to tacitfy a sentence, you write down its AST, do some pattern matching with the conjunctions and dummy verbs like `]`.
-- Tacit programming isn't *that* hard. I managed to learn and write this post that covers most of the basics in a day, without an LLM [^note4].
-- Maybe I'll update the post with some advanced topics like nesting fork and automatic tacit conversion, and finish the entire program.
+- Tacit programming isn't *that* hard (if you just want to use it daily). I managed to learn and write this post that covers most of the basics in two days, without an LLM [^note4].
+
+[^note4]: I doubt that LLMs can help me learn any array language, given that the training data is so sparse. Building an RAG on array language docs sounds like a good idea to promote the languages.
+
+## Appendix: Solutions to the Exercises
+
+{% highlight j %}
+get_image =: (I."1)&1
+entropy_mat =: replace_zero @: entropy"1 @: posterior"1
+collapse_mask =: first @: min_mask @: entropy_mat
+valid_or_reset =: ((>: *./) ,) +./"1
+edge_list =: ,/ @: |: > @: [ ; |.~
+posterior =: (% +/) @: (prior * ])
+idx_unit =: [ +/ . * 1 ,~ 1 {  ]
+{% endhighlight %}
 
 ****
-
-[^note4]: I doubt that LLMs can help me learn any array language, given that the training data is so sparse. Building a RAG on array language docs sounds like a good idea to promote the languages.
