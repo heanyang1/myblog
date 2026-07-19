@@ -68,7 +68,7 @@ Here's the sign analysis problem described mathematically:
 
 "Sound" means that the function we want should be *correct* every time we run the program \(\mathcal{P}\). We don't want a function that assigns \(+\) to `z` after `input z` because a user may input `0` and the function will be incorrect. We will leave most of the discussion about the soundness of the algorithm to later posts.
 
-Actually, we don't need to find the function \(P\to(V\to S)\), what we are interested is the value of the function at the end or each statement. Assume that we have find the optimal function \(f\). Let \(S=\{s_1,\dots,s_{|S|}\}\) and \(\sigma_i=f(\mathrm{end}(s_i))\), then finding the vector \(\Sigma=(\sigma_1,\sigma_2,\dots,\sigma_{|S|})\in (V^{\mathcal{S}})^{|S|}\) is sufficient.
+Actually, we don't need to find the function \(P\to(V\to S)\), what we are interested is the value of the function at the end or each statement. Assume that we have found the optimal function \(f\). Let \(S=\{s_1,\dots,s_{|S|}\}\) and \(\sigma_i=f(\mathrm{end}(s_i))\), then finding the vector \(\Sigma=(\sigma_1,\sigma_2,\dots,\sigma_{|S|})\in (V^{\mathcal{S}})^{|S|}\) is sufficient.
 
 ## Lattice
 
@@ -83,7 +83,7 @@ For a partial order \((A,\sqsubseteq)\) and \(B\subseteq A\), we can define the 
 1. \(\forall b\in B,b\sqsubseteq a\) (\(a\) is the upper bound).
 2. \(\forall a'\in A\), if \(\forall b\in B,b\sqsubseteq a'\), then \(a\sqsubseteq a'\) (\(a\) is the least upper bound).
 
-Similarily, we can define the *meet* of \(B\) as the greatest lower bound of \(B\).
+Similarly, we can define the *meet* of \(B\) as the greatest lower bound of \(B\).
 
 For a set with two elements \(\{a_1,a_2\}\), we usually use \(a_1\sqcup a_2\) as the join and \(a_1\sqcap a_2\) as the meet.
 
@@ -115,7 +115,7 @@ instance Lattice Bool where
   leq a b = not a || b
 ```
 
-The power set of a set is also a lattice. To get the information about which set does the current subset belongs to (and to prevent us from accidently joining two subsets from different sets), we use [Haskell's reflection](https://hackage.haskell.org/package/reflection-2.1.9/docs/Data-Reflection.html) [^haskell_reflection] to encode the set:
+The power set of a set is also a lattice. To get the information about which set does the current subset belongs to (and to prevent us from accidentally joining two subsets from different sets), we use [Haskell's reflection](https://hackage.haskell.org/package/reflection-2.1.9/docs/Data-Reflection.html) [^haskell_reflection] to encode the set:
 ```haskell
 newtype PowerSet s a = PowerSet { unPowerSet :: Set a }
   deriving (Eq, Ord, Show)
@@ -241,7 +241,7 @@ digraph sign_lattice {
 }
 {% endgraphviz %}
 
-It's an infinite lattice, but it's a complete one (i.e. every elements have joins and meets) and its height is 2.
+It's an infinite lattice, but it's a complete one (i.e. every element have joins and meets) and its height is 2.
 
 ## Constraint Equations
 
@@ -423,10 +423,10 @@ The uniqueness is the direct result of anti-symmetry: if \(x\) is another least 
 
 The proof is constructive: from the proof, we can get a simple algorithm that calculates the fixed point of any function \(f\) (which is called *naive fixed point algorithm* in SPA textbook): just calculate \(f^n(\perp)\) until it converges.
 
-We can gain some intuition (not a rigorous proof!) about the algorithm when we generalized it a bit. Suppose we want to find the least fixed point of \(f(x)=e^x-1.5\) on the lattice \([-3,3]\subseteq\mathbb{R}\). It's the left-most intersection between \(y=x\) and \(y=e^x-1.5\): [^geogebra]
+We can gain some intuition (not a rigorous proof!) about the algorithm when we generalize it a bit. Suppose we want to find the least fixed point of \(f(x)=e^x-1.5\) on the lattice \([-3,3]\subseteq\mathbb{R}\). It's the left-most intersection between \(y=x\) and \(y=e^x-1.5\): [^geogebra]
 ![1](/myblog/assets/2026-07-19/init.png)
 
-[^geogebra]: These graphs are drawn by [GeoGebra](https://www.geogebra.org/classic).
+[^geogebra]: These plots are drawn using [GeoGebra](https://www.geogebra.org/classic).
 
 Let's start from \(\perp=-3\) and draw the line \(x=-3\). Its intersection with \(e^x-1.5\) is the value of \(f(\perp)\approx 1.45\):
 ![2](/myblog/assets/2026-07-19/first.png)
@@ -437,7 +437,7 @@ Draw two lines perpendicular to Y axis and X axis respectively, then we got \(f(
 We can continue the process until it converge to the fixed point:
 ![4](/myblog/assets/2026-07-19/end.png)
 
-You can see in the graph that the relations in equation (3) also holds.
+You can see in the plot that the relations in equation (3) also holds.
 
 The following is StaPL's fixed point algorithm. It's more general in that it calculates both \(\mathrm{begin}(s)\) and \(\mathrm{end}(s)\), considers the entry point and uses `combine` rather than join to collect information from its predecessors:
 ```haskell
@@ -475,7 +475,7 @@ Most lemmas are exercises in the SPA textbook. I'll generalize the lemma only wh
 
 **Lemma 1.** Let \(X,Y,Z\) be lattice, \(f:X\to Y,g:Y\to Z\) be monotone function, then \(g\circ f:X\to Z\) is also monotone.
 
-*proof.* for every \(x_1,x_2\in X\), if \(x_1\sqsubseteq x_2\), then \(f(x_1)\sqsubseteq f(x_2)\), then
+*proof.* For every \(x_1,x_2\in X\), if \(x_1\sqsubseteq x_2\), then \(f(x_1)\sqsubseteq f(x_2)\), then
 \[(g\circ f)(x_1)=g(f(x_1))\sqsubseteq g(f(x_2))=(g\circ f)(x_2).\]
 
 Therefore \(g\circ f:X\to Z\) is monotone. \(\Box\)
