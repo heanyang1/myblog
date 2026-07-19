@@ -80,6 +80,8 @@ GEM
       safe_yaml (~> 1.0)
       terminal-table (>= 1.8, < 4.0)
       webrick (~> 1.7)
+    jekyll-diagrams (0.10.0)
+      jekyll (>= 3.8, < 5.0)
     jekyll-feed (0.17.0)
       jekyll (>= 3.7, < 5.0)
     jekyll-sass-converter (3.1.0)
@@ -175,6 +177,7 @@ DEPENDENCIES
   http_parser.rb (~> 0.6.0)
   jektex (~> 0.1.1)
   jekyll (~> 4.4.1)
+  jekyll-diagrams (~> 0.10.0)
   jekyll-feed (~> 0.12)
   minima (~> 2.5)
   tzinfo (>= 1, < 3)
@@ -218,6 +221,7 @@ CHECKSUMS
   i18n (1.14.8) sha256=285778639134865c5e0f6269e0b818256017e8cde89993fdfcbfb64d088824a5
   jektex (0.1.1) sha256=a82d04f6b60cad06ed1add426c62718af6121d5c06fee8859ac7bee6e834470f
   jekyll (4.4.1) sha256=4c1144d857a5b2b80d45b8cf5138289579a9f8136aadfa6dd684b31fe2bc18c1
+  jekyll-diagrams (0.10.0) sha256=616e9baf32cc5c05d30fd6354d4e6014e501d1a23cf862e0788569854fb32189
   jekyll-feed (0.17.0) sha256=689aab16c877949bb9e7a5c436de6278318a51ecb974792232fd94d8b3acfcc3
   jekyll-sass-converter (3.1.0) sha256=83925d84f1d134410c11d0c6643b0093e82e3a3cf127e90757a85294a3862443
   jekyll-seo-tag (2.8.0) sha256=3f2ed1916d56f14ebfa38e24acde9b7c946df70cb183af2cb5f0598f21ae6818
