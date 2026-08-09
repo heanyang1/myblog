@@ -1,9 +1,9 @@
 ---
 layout: post
-title:  "Data Flow Analysis with StaPL (part 1)"
+title:  "Data Flow Analysis with StaPL (Part 1)"
 ---
 
-> This is supposed to be the first post of a series about me learning static analysis.
+> This is the first post of a series about me learning static analysis. Here's [the next post](/myblog/2026/08/09/dfa-with-category-theory.html).
 
 Recently I discovered that some parts of my work (I won't share the detail further) are just data flow analysis (DFA) problems. So I read some chapters of [the SPA textbook](https://cs.au.dk/~amoeller/spa/) in the past weekends. The book introduces a language called TIP, with a [C++ compiler and analyzer using LLVM](https://github.com/matthewbdwyer/tipc). Although it may be a good resource for learning LLVM, I don't want to use it now [^tip_later] because
 - I need something specifically built for learning DFA, while TIP merges many topics including type inference and pointer analysis.
@@ -64,11 +64,11 @@ Here's the sign analysis problem described mathematically:
 2. There is also a set of signs \(\mathcal{S}=\{+,-,0,\top,\perp\}\).
 3. The goal is to find the *smallest sound* function \(P\to(V\to\mathcal{S})\).
 
-"Smallest" means that there is a partial order \(\{P^{V^{\mathcal{S}}},\sqsubseteq\}\) according to the exactness of the function: in the example above, if \((f(p))(x)=+,(g(p))(x)=\top\) for some program point \(p\), and \(f=g\) everywhere else, then we think \(f\sqsubseteq g\) and we prefer \(f\) over \(g\). As shown in later sections, we don't need to explicitly writing down the partial order to use it.
+"Smallest" means that there is a partial order \(\{\mathcal{S}^{V^{P}},\sqsubseteq\}\) according to the exactness of the function: in the example above, if \((f(p))(x)=+,(g(p))(x)=\top\) for some program point \(p\), and \(f=g\) everywhere else, then we think \(f\sqsubseteq g\) and we prefer \(f\) over \(g\). As shown in later sections, we don't need to explicitly writing down the partial order to use it.
 
 "Sound" means that the function we want should be *correct* every time we run the program \(\mathcal{P}\). We don't want a function that assigns \(+\) to `z` after `input z` because a user may input `0` and the function will be incorrect. We will leave most of the discussion about the soundness of the algorithm to later posts.
 
-Actually, we don't need to find the function \(P\to(V\to S)\), what we are interested is the value of the function at the end or each statement. Assume that we have found the optimal function \(f\). Let \(S=\{s_1,\dots,s_{|S|}\}\) and \(\sigma_i=f(\mathrm{end}(s_i))\), then finding the vector \(\Sigma=(\sigma_1,\sigma_2,\dots,\sigma_{|S|})\in (V^{\mathcal{S}})^{|S|}\) is sufficient.
+Actually, we don't need to find the function \(P\to(V\to S)\), what we are interested is the value of the function at the end or each statement. Assume that we have found the optimal function \(f\). Let \(S=\{s_1,\dots,s_{|S|}\}\) and \(\sigma_i=f(\mathrm{end}(s_i))\), then finding the vector \(\Sigma=(\sigma_1,\sigma_2,\dots,\sigma_{|S|})\in ({\mathcal{S}}^V)^{|S|}\) is sufficient.
 
 ## Lattice
 
@@ -207,7 +207,7 @@ instance Lattice Sign where
     (_, Top)    -> True
     _           -> x == y
 ```
-and \(V^{\mathcal{S}}\) can be written as a map lattice:
+and \({\mathcal{S}}^V\) can be written as a map lattice:
 ```haskell
 let allVars = collectVars program
 reify allVars $ \ (Proxy :: Proxy s) -> (bottom :: MapLattice s Text Sign)
@@ -215,7 +215,7 @@ reify allVars $ \ (Proxy :: Proxy s) -> (bottom :: MapLattice s Text Sign)
 
 Note that \(\sqsubseteq\) is derived automatically from the rules of the map lattice.
 
-Similarly, \(P^{V^{\mathcal{S}}}\) is also a map lattice, but we don't need that result.
+Similarly, \(\mathcal{S}^{V^{P}}\) is also a map lattice, but we don't need that result.
 
 We can use *Hasse diagrams* to represent lattices. The nodes in a Hasse diagram are elements in the lattice, and there is an edge between \(x_1,x_2\) iff \(x_1\sqsubseteq x_2\) and there is no element \(y\) such that \(x_1\sqsubseteq y\) and \(y\sqsubseteq x_2\). For example, the `Sign` lattice can be drawn as:
 {% graphviz %}
@@ -247,7 +247,7 @@ It's an infinite lattice, but it's a complete one (i.e. every element have joins
 
 To make sure that the sign analysis result is correct, we introduce some constraints that every correct result should have. In later posts we'll prove that these constraints are sufficient for a sound solution.
 
-If we view functions in \(V^{\mathcal{S}}\) as abstract states of a program, then given a statement \(s\), we can write down the difference between the value of \(f:P\to V\to\mathcal{S}\) on the beginning and the end of \(s\) (which is called *transfer function* in static analysis):
+If we view functions in \(\mathcal{S}^{V}\) as abstract states of a program, then given a statement \(s\), we can write down the difference between the value of \(f:P\to V\to\mathcal{S}\) on the beginning and the end of \(s\) (which is called *transfer function* in static analysis):
 \[\mathrm{transfer}(s)(f(\mathrm{begin}(s))):=f(\mathrm{end}(s)).\]
 
 Here's the explicit definition of the transfer function:
@@ -334,7 +334,7 @@ By Lemma 2,3 and 4, \(JOIN\) is monotone.
 
 By Lemma 2 and 3, to prove that \(T\) is monotone, we can prove that \(\mathrm{transfer}(s)\) is monotone for every statement \(s\).
 
-The definition of \(\mathrm{transfer}(s)\) is given as `transferFn`. For a specific statement, it's either a function that does nothing or a function \(V^{\mathcal{S}}\to(V\to \mathcal{S})\) that fits into Lemma 5:
+The definition of \(\mathrm{transfer}(s)\) is given as `transferFn`. For a specific statement, it's either a function that does nothing or a function \({\mathcal{S}}^V\to(V\to \mathcal{S})\) that fits into Lemma 5:
 - The \(f\) is the identity function.
 - When the statement is `T.Input`, \(g(x)=\top\).
 - When the statement is `T.Assign`, \(g(x)\) is `\x -> evalSign x expr`.
