@@ -4,6 +4,7 @@ title:  "Data Flow Analysis with Category Theory (Part 2)"
 ---
 
 > This is the second post of a series about me learning static analysis. Here's [the previous post](/myblog/2026/07/19/data-flow-analysis-with-stapl.html).
+> Update on 08-30: Added two proposition and their proofs.
 
 When writing the previous post, I realized that lattices are just categories and I can avoid reinventing wheels by directly using some well-known theorems in category theory. So before proving the soundness of sign analysis, I'd like to take a little detour about category theory and how it can be used to understand the problem.
 
@@ -11,7 +12,9 @@ If you are familiar with things like adjunctions and limits, feel free to skip t
 
 [^update]: On the other hand, I haven't finished the soundness proof, so things in this post is just the tools being used so far, and maybe I'll add more content to this post later.
 
-I used AI to draw some of the diagrams in this post. Everything else is handwritten.
+This post is handwritten with some exceptions:
+- Some of the diagrams are drawn by AI.
+- I used AI to formalize this post in Lean4 and I'll mention some of its proofs. Here's [the entire proof](https://github.com/heanyang1/proofs/blob/main/Proofs/Adjunctions.lean)
 
 ## Basic Concepts
 
@@ -54,7 +57,7 @@ For functors \(F: \mathcal{C}_1\to \mathcal{C}_2,G: \mathcal{C}_2\to \mathcal{C}
 
 Using categories and functors, we can construct a category of categories \( \mathsf{Cat}\) where the objects are categories and morphisms are functors.
 
-**Natural transformations.** The *natural transformation* \(\theta\) between two functors \(F,G:\mathcal{C}\to \mathcal{C}'\) is a set of morphisms \(\{\theta_X\in\mathcal{C}(FX,GX)|X\in\mathrm{Ob}(\mathcal{C})\}\) such that for every morphism \(f:X\to Y\in\mathrm{Mor}(\mathcal{C})\), \(\theta_Y\circ Ff=Gf\circ\theta_X\).
+**Natural transformations.** The *natural transformation* \(\theta\) between two functors \(F,G:\mathcal{C}\to \mathcal{C}'\) is a set of morphisms \(\{\theta_X\in\mathcal{C}'(FX,GX)|X\in\mathrm{Ob}(\mathcal{C})\}\) such that for every morphism \(f:X\to Y\in\mathrm{Mor}(\mathcal{C})\), \(\theta_Y\circ Ff=Gf\circ\theta_X\).
 
 We can draw the objects and morphisms as the following *diagram*, and \(\theta_Y\circ Ff=Gf\circ\theta_X\) is equivalent to the claim that the following diagram commutes:
 \[
@@ -65,7 +68,19 @@ FY @>>\theta_Y> GY
 \end{CD}
 \]
 
-In a lattice, every diagram commutes, so every two functors equipped with a map from object to morphisms can be natural transformation.
+For functors \(F,G,H: \mathcal{C}_1\to \mathcal{C}_2\) and natural transformations \(\alpha:F\to G,\beta:G\to H\), the *(vertical) composition* [^composition] of \(\alpha\) and \(\beta\) is a natural transformation \(\beta\circ\alpha:F\to H\) where for every \(c\in \mathcal{C},(\beta\circ\alpha)_c=\beta_c\circ\alpha_c\) (Verify that it's a natural transformation if you are interested).
+
+[^composition]: There is another kind of composition called *horizontal composition*. It's not used in this post, and every \(\circ\) means vertical composition.
+
+The functors from \( \mathcal{C}_1\to \mathcal{C}_2\) forms a category \(\mathcal{C}_2^{\mathcal{C}_1}\). Its morphisms are natural transformations between functors. In lattice theory, it's the lattice of monotone map between two lattices.
+
+In lattice theory, the map lattice \(S\to L\) contains any map from set \(S\) to lattice \(L\). Such map is a functor \(\mathsf{Disc}(S)\to L\), so we can construct the category of map lattices as \(L^{ \mathsf{Disc}(S)}\).
+
+**Product Categories.** Let \(I\) be a set and \(\{ \mathcal{C}_i|i\in I\}\) be a set of categories. The *product category* \(\prod_{i\in I} \mathcal{C}_i\) is defined as:
+- \( \mathrm{Ob}(\prod_{i\in I} \mathcal{C}_i)=\prod_{i\in I} \mathrm{Ob}(\mathcal{C}_i)\),
+- \((\prod_{i\in I} \mathcal{C}_i)(\prod_{i\in I}X_i,\prod_{i\in I}Y_i)=\prod_{i\in I}\mathcal{C}_i(X_i,Y_i)\).
+
+If \(I=\{1,2,\dots,n\}\), then \(\prod_{i\in I} \mathcal{C}_i\) can be written as \( \mathcal{C}_1\times\dots\times \mathcal{C}_n\) and its objects are tuples \((X_1,\dots,X_n)\).
 
 ## Universal Constructions
 
@@ -134,9 +149,9 @@ The following claims are equivalent:
 \end{CD}
 \tag{2}\]
 
-The tuple of functors and the isomorphism \((L,R,\varphi)\) is called an *adjunction*. \(L\) is called *the left adjoint to* \(R\) and \(R\) is called *the right adjoint to* \(L\).
+The tuple of functors and the isomorphism \((L,R,\varphi)\) is called an *adjunction*. \(L\) is called *the left adjoint to* \(R\) and \(R\) is called *the right adjoint to* \(L\), or just written as \(L\dashv R\).
 
-You don't need to understand the equivalence proof to understand the topic, so I'll put it in the appendix A.
+You don't need to understand the equivalence proof to understand the topic, so I'll put it in the appendix.
 
 The following are the direct results of adjunctions:
 
@@ -161,6 +176,129 @@ By definition of \(\prod C\), because for every \(c\in C\), there is a morphism 
 Because \(f\) is unique, therefore \( \mathcal{C}(Ld,\prod C)\) is a singleton set, therefore \( \mathcal{D}(d,R(\prod C))\) is also a singleton set, which means there is a unique \(f':d\to R(\prod C)\). We can get the equation \(g'_{Rc}=f'_{Rc}\circ f\) by connecting \(f'\) and \(R\) applied to the morphism \(\prod C\to c\). \(\Box\)
 
 Similarly, we can prove that left adjoints preserves initial objects and coproducts.
+
+The converse of proposition 2 is also true for lattices: between two complete lattices, we can construct an adjunction pair from a functor that preserves product.
+
+**Proposition 3.** Let \( \mathcal{C}, \mathcal{D}\) be complete lattices and \(R: \mathcal{C}\to \mathcal{D}\) be a functor. If for every \(C\subseteq \mathrm{Ob}( \mathcal{C})\), \(\prod\{Rc|c\in C\}=R(\prod C)\), then there exists a functor \(L\) and natural isomorphism \( \varphi\) such that \(L\) and \(R\) forms an adjunction pair.
+
+*proof.* We define the left adjoint \(L: \mathcal{D}\to \mathcal{C}\) as
+\[L:d\mapsto\prod\{c|c\in \mathrm{Ob}( \mathcal{C}),d\to Rc\}\]
+and define the unit \(\eta\) and counit \( \varepsilon\).
+
+Because \(R\) preserves product, therefore for every \(d\in \mathrm{Ob}( \mathcal{D})\),
+\[(R\circ L)d=R(Ld)=R\left(\prod\{c|d\to Rc\}\right)=\prod\{Rc|d\to Rc\}.\]
+
+For every \(d'\in \{Rc|d\to Rc\}\), there is a morphism \(d\to d'\). By definition of product, there exists a unique morphism \(d\to\prod\{Rc|d\to Rc\}=(R\circ L)d\). We can use this morphism as \(\eta_d\).
+
+For every \(c\in \mathrm{Ob}( \mathcal{C})\),
+\[(L\circ R)c=L(Rc)=\prod\{c'|Rc\to Rc'\}.\]
+
+Because \(R\,\mathrm{id}_c:Rc\to Rc\), therefore \(c\in\{c'|Rc\to Rc'\}\), therefore there is a morphism \(\prod\{c'|Rc\to Rc'\}\to c\). We can use this morphism as \( \varepsilon_c\).
+
+Because \( \mathcal{C}, \mathcal{D}\) are lattices, therefore \(\eta\) and \( \varepsilon\) automatically becomes natural transformations. Using the first definition, we know that \(L\) and \(R\) forms an adjunction pair. \(\Box\)
+
+Proposition 3 doesn't hold in general because we may choose an arbitrary morphism \(\prod\{c'|Rc\to Rc'\}\to c\) that make the diagram not commute.
+
+The following propositions allow us to create adjunction pairs on product and map lattices easily.
+
+**Proposition 4.** Let \(\mathcal{C}_1, \mathcal{D}_1, \mathcal{C}_2, \mathcal{D}_2\) be categories and \(L_1: \mathcal{D}_1\to \mathcal{C}_1,R_1: \mathcal{C}_1\to \mathcal{D}_1, L_2: \mathcal{D}_2\to \mathcal{C}_2,R_2: \mathcal{C}_2\to \mathcal{D}_2\) be functors. If \(L_1\) and \(R_1\), \(L_2\) and \(R_2\) forms two adjunction pairs, then there exists functors \(L': \mathcal{D}_1\times{\mathcal{D}}_2\to \mathcal{C}_1\times\mathcal{C}_2\) and \(R': \mathcal{C}_1\times\mathcal{C}_2\to \mathcal{D}_1\times{\mathcal{D}}_2\) such that \(L',R'\) forms an adjunction pair.
+
+*proof*. I'm getting lazy by this point and decided to let an AI agent write a proof in Lean4:
+```lean
+-- Imports and universes are omitted
+
+section Proposition4
+
+-- Defines categories and adjunctions. The notation is a bit weird but understandable.
+-- BTW, you can view the definition by hovering on the symbol if you are using VSCode
+variable {C₁ : Type u₁} [Category.{v₁} C₁] {D₁ : Type u₂} [Category.{v₂} D₁]
+  {C₂ : Type u₃} [Category.{v₃} C₂] {D₂ : Type u₄} [Category.{v₄} D₂]
+  {L₁ : D₁ ⥤ C₁} {R₁ : C₁ ⥤ D₁} (adj₁ : L₁ ⊣ R₁)
+  {L₂ : D₂ ⥤ C₂} {R₂ : C₂ ⥤ D₂} (adj₂ : L₂ ⊣ R₂)
+
+-- The proposition is "proved" by constructing an adjunction pair using the first definition
+-- `L₁.prod L₂` is a functor from `D₁.prod D₂` to `C₁.prod C₂` that maps `(d.1 d.2)` to `(L₁ d.1, L₂ d.2)`
+def Adjunction.prod : L₁.prod L₂ ⊣ R₁.prod R₂ where
+  unit :=
+    { -- A natural transformation is defined by a function mapping a object to a morphism equipped with the naturality equation.
+      -- Our function applies (d.1, d.2) to (unit₁ d.1, unit₂ d.2)
+      app := fun d => (adj₁.unit.app d.1, adj₂.unit.app d.2)
+      naturality := fun {d d'} f => by
+        ext -- skips too many details
+        · exact adj₁.unit.naturality f.1
+        · exact adj₂.unit.naturality f.2 }
+  counit :=
+    { app := fun c => (adj₁.counit.app c.1, adj₂.counit.app c.2)
+      naturality := fun {c c'} f => by
+        ext
+        · exact adj₁.counit.naturality f.1
+        · exact adj₂.counit.naturality f.2 }
+
+end Proposition4
+```
+
+The naturality proof is like an "It's trivial" in math textbook. Let me explain it in detail.
+
+Let the unit we have defined be \(\eta=(\eta_1,\eta_2)\) and we need to prove that for every morphism \(f:(d_1,d_2)\to (d_1',d_2')=(f_1,f_2)\) on \(\mathcal{D}_1\times \mathcal{D}_2\),
+\[\eta\circ f (d_1,d_2)=(R'\circ L') f\circ\eta(d_1,d_2).\]
+
+This is an identity on \(\mathcal{D}_1\times \mathcal{D}_2\) [^identity], and the `ext` tactic split this target into identities on \(\mathcal{D}_1\) and \(\mathcal{D}_2\) respectively:
+\[\eta_1\circ f_1\ d_1=((R'_1\circ L'_1) f_1)\circ\eta_1\ d_1,\quad\eta_2\circ f_2\ d_2=((R'_2\circ L'_2) f_2)\circ\eta_2\ d_2,\]
+where \(R'_1\) is the first component of \(R'\) and so on.
+
+[^identity]: Actually it's an identity on morphisms (i.e. there is no \((d_1,d_2)\)) if you wiew it in Lean InfoView. I'm just making things easier to understand here.
+
+By definition, \(L_1'\) maps any object \(d\in \mathrm{Ob}(\mathcal{D})\) to \(L_1 d\), so \(L_1'=L_1\). Similarly \(L_2'=L_2,R_1'=R_1\) and \(R_2'=R_2\). The equations above reduces to the naturality of the unit of \(L_1\dashv R_1\) and \(L_2\dashv R_2\). The counit is similar. \(\Box\)
+
+**Proposition 5.** Let \( \mathcal{I}, \mathcal{C}, \mathcal{D}\) be categories and \(L: \mathcal{D}\to \mathcal{C},R: \mathcal{C}\to \mathcal{D}\) be functors. If \(L\) and \(R\) forms an adjunction pair, then there exists functors \(L': \mathcal{D}^{\mathcal{I}}\to \mathcal{C}^\mathcal{I}\) and \(R': \mathcal{C}^{\mathcal{I}}\to \mathcal{D}^\mathcal{I}\) such that \(L',R'\) forms an adjunction pair.
+
+*proof*. Used LLM and got a "trivial answer" again:
+```lean
+section Proposition5
+
+variable (I : Type u₅) [Category.{v₅} I]
+  {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D]
+  {L : D ⥤ C} {R : C ⥤ D} (adj : L ⊣ R)
+
+def Adjunction.postcompose :
+    (whiskeringRight I D C).obj L ⊣ (whiskeringRight I C D).obj R where
+  unit :=
+    { app := fun X => whiskerLeft X adj.unit
+      naturality := by intros; ext; simp }
+  counit :=
+    { app := fun F => whiskerLeft F adj.counit
+      naturality := by intros; ext; simp }
+
+end Proposition5
+```
+
+The explaination:
+1. `(whiskeringRight I D C).obj` is a functor \((\mathcal{D}\to \mathcal{C})\to((\mathcal{I}\to \mathcal{D})\to(\mathcal{I}\to \mathcal{C}))\) that maps a functor \(F:\mathcal{D}\to\mathcal{C}\) to a functor \(G:(\mathcal{I}\to \mathcal{D})\to(\mathcal{I}\to \mathcal{C})\) that maps a functor \(H:\mathcal{I}\to \mathcal{D}\) to a functor \(F\circ H\).
+2. We use `(whiskeringRight I D C).obj L` as the left adjoint \(L'\). It maps functor \(X:\mathcal{I}\to\mathcal{D}\) to \(L\circ X\).
+3. Similarly, we use `(whiskeringRight I C D).obj R` as the right adjoint \(R'\).
+4. To construct the unit, we need a function that maps an object \(X\) in \(\mathcal{D}^{\mathcal{I}}\) to a morphism \(X\to (R'\circ L') X\) in \(\mathcal{D}^{\mathcal{I}}\). It's given by `whiskerLeft X adj.unit`, which means lifting (whiskering) the unit \(\mathrm{id}_{\mathcal{D}}\to R\circ L\) to \(\mathrm{id}_{\mathcal{D}}\circ X\to (R\circ L)\circ X\). It exploits the fact that \(X\) is a morphism \(\mathcal{I}\to\mathcal{D}\).
+   - Lean4 did some bookkeeping behind the scene: \(X\) is equivalent to \(\mathrm{id}_{\mathcal{D}}\circ X\) and \((R\circ L)\circ X\) is equivalent to \(R'(L'X)\) in \(\mathcal{D}^{\mathcal{I}}\).
+
+The naturality proof is completely useless from understanding perspective, so let's prove it ourselves.
+
+For every morphism \(f:X\to Y\) in \(\mathcal{D}^{\mathcal{I}}\), we need to prove
+\[\eta_Y\circ f=(R'\circ L')f\circ \eta_X.\]
+
+The both sides of the equation are morphisms in \(\mathcal{D}^{\mathcal{I}}\), which are natural transformations, so we can prove that for every \(i\in \mathrm{Ob}(\mathcal{I})\),
+\[(\eta_Y\circ f)_i=((R'\circ L')f\circ \eta_X)_i.\]
+
+By definition of the composition of natural transformations, we have
+\[(\eta_Y)_i\circ f_i=((R'\circ L')f)_i\circ(\eta_X)_i.\]
+
+\(\eta_Y:Y\to (R'\circ L')Y=R\circ L\circ Y\) is a natural transformation between functors \(Y\) and \(R\circ L\circ Y\), so \((\eta_Y)_i\) is a morphism \(Y\, i\to R\circ L\circ Y\, i\) in \(\mathcal{D}\). Similarly, the goal reduces to the following square:
+\[
+\begin{CD}
+X\, i @>f_i>> Y\, i \\
+@V\eta_XVV @VV\eta_YV \\
+R\circ L\circ X\, i @>>((R'\circ L')f)_i> R\circ L\circ Y\, i
+\end{CD}
+\]
+which holds by the naturality of the unit of \(L\dashv R\). \(\Box\)
 
 ## Further Reading
 
