@@ -3,7 +3,8 @@ layout: post
 title:  "Data Flow Analysis with Category Theory (Part 2)"
 ---
 
-> This is the second post of a series about me learning static analysis. Here's [the previous post](/myblog/2026/07/19/data-flow-analysis-with-stapl.html).
+> This is the second post of a series about me learning static analysis. Here's [the previous post](/myblog/2026/07/19/data-flow-analysis-with-stapl.html) and [the next post](/myblog/2026/09/06/soundness-of-sign-analysis.html).
+>
 > Update on 08-30: Added two proposition and their proofs.
 
 When writing the previous post, I realized that lattices are just categories and I can avoid reinventing wheels by directly using some well-known theorems in category theory. So before proving the soundness of sign analysis, I'd like to take a little detour about category theory and how it can be used to understand the problem.

@@ -4,6 +4,8 @@ title:  "Data Flow Analysis with StaPL (Part 1)"
 ---
 
 > This is the first post of a series about me learning static analysis. Here's [the next post](/myblog/2026/08/09/dfa-with-category-theory.html).
+>
+> Update on 2026-09-06: I formalized the entire series in Lean using an AI agent, and it found some issues with `/`'s lookup table. Now it's fixed.
 
 Recently I discovered that some parts of my work (I won't share the detail further) are just data flow analysis (DFA) problems. So I read some chapters of [the SPA textbook](https://cs.au.dk/~amoeller/spa/) in the past weekends. The book introduces a language called TIP, with a [C++ compiler and analyzer using LLVM](https://github.com/matthewbdwyer/tipc). Although it may be a good resource for learning LLVM, I don't want to use it now [^tip_later] because
 - I need something specifically built for learning DFA, while TIP merges many topics including type inference and pointer analysis.
@@ -79,11 +81,11 @@ A *partial order* \((A,\sqsubseteq)\) is a set \(A\) and a relation \(\sqsubsete
 2. \(\forall a_1,a_2,a_3\in A\), if \(a_1\sqsubseteq a_2\) and \(a_2\sqsubseteq a_3\), then \(a_1\sqsubseteq a_3\) (transitivity)
 3. \(\forall a_1,a_2\in A\), if \(a_1\sqsubseteq a_2\) and \(a_2\sqsubseteq a_1\), then \(a_1=a_2\) (anti-symmetry)
 
-For a partial order \((A,\sqsubseteq)\) and \(B\subseteq A\), we can define the *join* of \(B\) as the element \(a\in A\) such that:
+For a partial order \((A,\sqsubseteq)\) and \(B\subseteq A\), we can define the *join* of \(B\) (denoted as \(\sqcup B\)) as the element \(a\in A\) such that:
 1. \(\forall b\in B,b\sqsubseteq a\) (\(a\) is the upper bound).
 2. \(\forall a'\in A\), if \(\forall b\in B,b\sqsubseteq a'\), then \(a\sqsubseteq a'\) (\(a\) is the least upper bound).
 
-Similarly, we can define the *meet* of \(B\) as the greatest lower bound of \(B\).
+Similarly, we can define the *meet* of \(B\) (denoted as \(\sqcap B\)) as the greatest lower bound of \(B\).
 
 For a set with two elements \(\{a_1,a_2\}\), we usually use \(a_1\sqcup a_2\) as the join and \(a_1\sqcap a_2\) as the meet.
 
@@ -290,10 +292,8 @@ evalBinOp T.Div = \s1 s2 -> case (s1, s2) of
   (_, Bottom) -> Bottom
   (_, Zero)   -> Bottom -- Divided by zero gives invalid sign
   (Zero, _)   -> Zero
-  (Pos, Pos)  -> Pos
-  (Neg, Neg)  -> Pos
-  (Pos, Neg)  -> Neg
-  (Neg, Pos)  -> Neg
+  (Pos, Pos)  -> Top -- In integer arithmetic, 1/2=0, 4/2=2, so the sign is unknown
+  (Neg, Neg)  -> Top -- The same as above
   _           -> Top
 -- ...
 ```
