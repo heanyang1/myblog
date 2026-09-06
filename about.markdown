@@ -4,7 +4,7 @@ title: About
 permalink: /about/
 ---
 
-Hi, my name is Anyang. I'm a full-time C++ programmer from China. I'm writing a blog to share something I have done and have learned. The topics will be mostly about different programming paradigms, mathematics and puzzle games.
+Hi, my name is Anyang He (or He, Anyang to be consistent with my Chinese name). I'm a full-time C++ programmer from China. I'm writing a blog to share something I have done and have learned. The topics will be mostly about different programming paradigms, mathematics and puzzle games.
 
 ## Why Writing This Blog
 

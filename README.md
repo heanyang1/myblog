@@ -14,3 +14,7 @@ A very simple blog that uses Jekyll with the most basic configuration.
 3. `bundle install && bundle exec jekyll serve`
 
 In Emacs, `M-x host-blog` runs `jekyll serve` in a `*blog-server*` buffer and opens the site in your browser once ready. The script is LLM-generated.
+
+## Licence
+
+[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
