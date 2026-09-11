@@ -17,4 +17,4 @@ In Emacs, `M-x host-blog` runs `jekyll serve` in a `*blog-server*` buffer and op
 
 ## Licence
 
-[CC-BY 4.0](https://creativecommons.org/licenses/by/4.0/)
+[CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)
