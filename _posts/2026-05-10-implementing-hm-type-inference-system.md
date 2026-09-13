@@ -5,7 +5,7 @@ title:  "Implementing Hindley-Milner Type Inference System (Part 1)"
 
 > This is the first post of a series about implementing and proving a HM type inference system. Here's [the next](/myblog/2026/05/17/rewriting-interpreter-in-haskell.html) post.
 >
-> Edit on 6/13: I found and fixed some issues in the typing rules when reading the proof. I won't say where it is and challenge you to find it without looking at the git history :)
+> Edit on 2026/6/13: I found and fixed some issues in the typing rules when reading the proof. I won't say where it is and challenge you to find it without looking at the git history :)
 
 About a year ago, I took [Stanford CS242 (fall 2019)](https://stanford-cs242.github.io/f19/) course and did the [assignment](https://stanford-cs242.github.io/f19/assignments/assign4/) to complete an interpreter for a simple ML-like language (it doesn't have a name, and I'll call it "Lam" as the file extension is `.lam`). It's a bit disappointed that the assignment didn't mention [Hindley-Milner type inference algorithm](https://en.wikipedia.org/wiki/Hindley%E2%80%93Milner_type_system), so I implemented one in [my Rust version of the interpreter](https://github.com/heanyang1/interpreter/tree/hm-inference).
 

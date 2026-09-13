@@ -3,6 +3,8 @@ layout: post
 title:  "Moving to CachyOS"
 ---
 
+> Edit on 2026/09/13: the firewall also bans my SSH connections so I added a line to my firewall config here.
+
 I've been using i3 on Debian and Arch Linux for many years on my old laptop. Despite some weird issues caused by not having a desktop environment, the system is pretty stable. Last year, however, I bought a new laptop with a new Nvidia graphics card and immediately went into trouble:
 - I wanted to install Arch since it has the latest Nvidia driver available, but `iwd` in the Arch installer is not able to turn my exotic Wi-Fi device on.
 - Then I tried Manjaro, which has a graphical installer that managed to connect to the network. I don't like its i3 config, so I installed the Xfce version and configured i3 manually.
@@ -69,6 +71,7 @@ I'm using LAN file transfer software like [KDE Connect](https://community.kde.or
 ```sh
 sudo ufw allow 1714:1764 # for KDE Connect
 sudo ufw allow 53317 # for Localsend
+sudo ufw allow 22 # for SSH
 sudo ufw reload
 ```
 

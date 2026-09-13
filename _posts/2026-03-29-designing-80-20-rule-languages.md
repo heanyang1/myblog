@@ -3,7 +3,7 @@ layout: post
 title:  "Designing 80:20 Rule Languages"
 ---
 
-EDIT: I made it clearer that the second language is not original.
+> EDIT: I made it clearer that the second language is not original.
 
 If you calculate a running sum of the sorted frequency of every word in a long book [^note1], the result looks like the following curve:
 ![1](/myblog/assets/2026-03-29/cdf.png)

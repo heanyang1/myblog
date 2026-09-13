@@ -5,9 +5,9 @@ title:  "Type Safety Proof (Part 3)"
 
 > This is the third post of a series about implementing and proving a HM type inference system. Here's the [previous post](/myblog/2026/05/17/rewriting-interpreter-in-haskell.html).
 >
-> Edited on 6/7: the agent-coding mess is cleaned up. The proof should be correct, but I don't have enough brain power to read it. I'll update again when I fully understand the proof.
+> Edited on 2026/6/7: the agent-coding mess is cleaned up. The proof should be correct, but I don't have enough brain power to read it. I'll update again when I fully understand the proof.
 >
-> Edited on 6/13: I think get the overall idea of the proof. This should be the end of updating this post.
+> Edited on 2026/6/13: I think get the overall idea of the proof. This should be the end of updating this post.
 
 I'm trying to use an AI agent to write the type safety proof for [my interpreter](https://github.com/heanyang1/interpreter) in [Lean 4](https://lean-lang.org). Here's the progress so far.
 
