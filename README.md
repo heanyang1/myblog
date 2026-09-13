@@ -15,6 +15,12 @@ A very simple blog that uses Jekyll with the most basic configuration.
 
 In Emacs, `M-x host-blog` runs `jekyll serve` in a `*blog-server*` buffer and opens the site in your browser once ready. The script is LLM-generated.
 
+## Troubleshooting
+
+I don't know much about Jekyll, so I don't have any advice except:
+- `rm .jekyll-cache` solves most of the problem
+- If not, use an AI agent to solve it for you
+
 ## Licence
 
 [CC BY-NC 4.0](https://creativecommons.org/licenses/by-nc/4.0/)

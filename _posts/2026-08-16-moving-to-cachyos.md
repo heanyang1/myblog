@@ -3,7 +3,7 @@ layout: post
 title:  "Moving to CachyOS"
 ---
 
-> Edit on 2026/09/13: the firewall also bans my SSH connections so I added a line to my firewall config here.
+> Edit on 2026/09/13: the firewall also bans my SSH connections so I added a line to my firewall config here. Also added are instructions to install a Chinese IME.
 
 I've been using i3 on Debian and Arch Linux for many years on my old laptop. Despite some weird issues caused by not having a desktop environment, the system is pretty stable. Last year, however, I bought a new laptop with a new Nvidia graphics card and immediately went into trouble:
 - I wanted to install Arch since it has the latest Nvidia driver available, but `iwd` in the Arch installer is not able to turn my exotic Wi-Fi device on.
@@ -18,14 +18,14 @@ Instead of trying to recover from the mess, I decided to pack things up and swit
 - The kernel and some packages are optimized for performance
 
 Here's a screenshot taken when writing this blog:
-![final](/myblog/assets/2026-08-16/final.png)
+![recursive screenshot](/myblog/assets/2026-08-16/final.png)
 
 This post records the process of me installing and configuring the OS.
 
 ## Installer
 
 The disk partitioning part is not very helpful. None of the options except `Erase disk` and `Manual partitioning` can install a bootable OS, and I need to allocate some swap spaces since the laptop only has 16GB of memory and memory prices are high.
-![install](/myblog/assets/2026-08-16/install.png)
+![installer](/myblog/assets/2026-08-16/install.png)
 
 ## Temperature
 
@@ -74,6 +74,17 @@ sudo ufw allow 53317 # for Localsend
 sudo ufw allow 22 # for SSH
 sudo ufw reload
 ```
+
+## Chinese IME
+
+I use [Fcitx5](https://fcitx-im.org/wiki/Fcitx_5) since it doesn't require much setup and I'm not picky about IME.
+```sh
+sudo pacman -S fcitx5-im
+sudo pacman -S fcitx5-chinese-addons
+```
+
+Fcitx5 also has APL and BQN keyboard, so there is one less ~~excuse not to~~ barrier to learn APL and BQN:
+![APL and BQN keyboard](/myblog/assets/2026-08-16/ime.png)
 
 ## Outro
 
