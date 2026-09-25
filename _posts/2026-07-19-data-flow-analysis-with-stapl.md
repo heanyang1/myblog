@@ -220,28 +220,51 @@ Note that \(\sqsubseteq\) is derived automatically from the rules of the map lat
 Similarly, \(\mathcal{S}^{V^{P}}\) is also a map lattice, but we don't need that result.
 
 We can use *Hasse diagrams* to represent lattices. The nodes in a Hasse diagram are elements in the lattice, and there is an edge between \(x_1,x_2\) iff \(x_1\sqsubseteq x_2\) and there is no element \(y\) such that \(x_1\sqsubseteq y\) and \(y\sqsubseteq x_2\). For example, the `Sign` lattice can be drawn as:
-{% graphviz %}
-digraph sign_lattice {
-    rankdir = BT;
-    node [shape = plaintext];
-    edge [arrowhead = none];
-    "⊥" -> {"+", "-", "0"};
-    {"+", "-", "0"} -> "⊤";
-}
-{% endgraphviz %}
+```tikz
+\documentclass[tikz]{standalone}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\begin{tikzpicture}
+  \node (bot)  at (0,0)      {$\bot$};
+  \node (plus) at (-1.8,1.2) {$+$};
+  \node (minus) at (0,1.2)   {$-$};
+  \node (zero) at (1.8,1.2)  {$0$};
+  \node (top)  at (0,2.4)    {$\top$};
+  \draw (bot) -- (plus);
+  \draw (bot) -- (minus);
+  \draw (bot) -- (zero);
+  \draw (plus) -- (top);
+  \draw (minus) -- (top);
+  \draw (zero) -- (top);
+\end{tikzpicture}
+\end{document}
+```
 
 The *height* of a lattice is the length of the longest path from \(\top\) to \(\perp\) in the Hasse diagram. The `Sign` lattice has height 2.
 
 Later we will use concepts like "complete lattice with finite height". Note that infinite lattices can also be complete lattice with finite height. Consider the lattice \(\mathbb{N}\cup\{\top,\perp\}\) with the following lattice:
-{% graphviz %}
-digraph sign_lattice {
-    rankdir = BT;
-    node [shape = plaintext];
-    edge [arrowhead = none];
-    "⊥" -> {"0", "1", "2", "..."};
-    {"0", "1", "2", "..."} -> "⊤";
-}
-{% endgraphviz %}
+```tikz
+\documentclass[tikz]{standalone}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\begin{tikzpicture}
+  \node (bot)  at (0,0)      {$\bot$};
+  \node (n0)   at (-1.8,1.2) {$0$};
+  \node (n1)   at (-0.6,1.2) {$1$};
+  \node (n2)   at (0.6,1.2)  {$2$};
+  \node (dots) at (1.8,1.2)  {$\cdots$};
+  \node (top)  at (0,2.4)    {$\top$};
+  \draw (bot) -- (n0);
+  \draw (bot) -- (n1);
+  \draw (bot) -- (n2);
+  \draw (bot) -- (dots);
+  \draw (n0) -- (top);
+  \draw (n1) -- (top);
+  \draw (n2) -- (top);
+  \draw (dots) -- (top);
+\end{tikzpicture}
+\end{document}
+```
 
 It's an infinite lattice, but it's a complete one (i.e. every element have joins and meets) and its height is 2.
 

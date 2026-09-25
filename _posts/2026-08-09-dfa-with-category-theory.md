@@ -124,13 +124,18 @@ Similarly, we can fix the source of the hom-set to get a functor \(\mathcal{C}(X
 For simplicity, we define \(\mathcal{C}(f,Y):=\mathcal{C}(*,Y)(f)\) and \(\mathcal{C}(X,f):=\mathcal{C}(X,*)(f)\). If \(X,Y, \mathcal{C}\) are well-defined in the context, then we'll further shorten it as \(f^*:=\mathcal{C}(f,Y)\) and \(f_*:=\mathcal{C}(X,f)\).
 
 **Adjunctions.** Let \(\mathcal{C},\mathcal{D}\) be two categories, \(L:\mathcal{D}\to\mathcal{C},R:\mathcal{C}\to\mathcal{D}\) be functors like the following diagram:
-{% graphviz %}
-digraph {
-    rankdir = RL;
-    D->C [label="L"];
-    C->D [label="R"];
-}
-{% endgraphviz %}
+```tikz
+\documentclass[tikz]{standalone}
+\usepackage{amsmath,amssymb}
+\begin{document}
+\begin{tikzpicture}
+  \node (D) at (2.2,0) {$\mathcal{D}$};
+  \node (C) at (0,0)   {$\mathcal{C}$};
+  \draw[->] (D) to[bend left=30] node[above] {$L$} (C);
+  \draw[->] (C) to[bend left=30] node[above] {$R$} (D);
+\end{tikzpicture}
+\end{document}
+```
 
 The following claims are equivalent:
 1. There are two natural transformations \(\eta: \mathrm{id}_{ \mathcal{D}}\to R\circ L\) (called *unit*) and \( \varepsilon:L\circ R\to \mathrm{id}_{\mathcal{C}}\) (called *counit*),
