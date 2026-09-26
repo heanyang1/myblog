@@ -1,10 +1,9 @@
 ---
 layout: post
-title:  "Data Flow Analysis with StaPL (Part 1)"
+title:  "Data Flow Analysis with StaPL"
+series: static-analysis
 ---
 
-> This is the first post of a series about me learning static analysis. Here's [the next post](/myblog/2026/08/09/dfa-with-category-theory.html).
->
 > Update on 2026/09/06: I formalized the entire series in Lean using an AI agent, and it found some issues with `/`'s lookup table. Now it's fixed.
 
 Recently I discovered that some parts of my work (I won't share the detail further) are just data flow analysis (DFA) problems. So I read some chapters of [the SPA textbook](https://cs.au.dk/~amoeller/spa/) in the past weekends. The book introduces a language called TIP, with a [C++ compiler and analyzer using LLVM](https://github.com/matthewbdwyer/tipc). Although it may be a good resource for learning LLVM, I don't want to use it now [^tip_later] because

@@ -1,0 +1,26 @@
+{% comment %}
+  Renders the series navigation note for a post that has a `series`
+  front matter key.  The series_part/series_size/series_prev/
+  series_next variables are computed by _plugins/series.rb and the
+  optional series description comes from _data/series.yml.
+{% endcomment %}
+{% if page.series and page.series_size > 1 %}
+  {% assign series = site.data.series[page.series] %}
+  {% capture description %}{% if series.description %} {{ series.description }}{% endif %}{% endcapture %}
+  <blockquote>
+    <p>
+      {% if page.series_part == 1 %}
+        This is the first post of a series{{ description }}.
+      {% elsif page.series_part == page.series_size %}
+        This is the last post of a series{{ description }}.
+      {% else %}
+        This is part {{ page.series_part }} of a series{{ description }}.
+      {% endif %}
+      {% if page.series_prev %}
+        Here{% if page.series_next %} are <a href="{{ page.series_prev.url | relative_url }}">the previous</a> and <a href="{{ page.series_next.url | relative_url }}">the next</a> posts{% else %}'s <a href="{{ page.series_prev.url | relative_url }}">the previous post</a>{% endif %}.
+      {% else %}
+        Here's <a href="{{ page.series_next.url | relative_url }}">the next post</a>.
+      {% endif %}
+    </p>
+  </blockquote>
+{% endif %}

@@ -1,9 +1,8 @@
 ---
 layout: post
-title:  "Soundness of Sign Analysis (Part 3)"
+title:  "Soundness of Sign Analysis"
+series: static-analysis
 ---
-
-> This is the last post of a series about me learning static analysis. Here's [the previous post](/myblog/2026/08/09/dfa-with-category-theory.html).
 
 In the first post of this series, we derived our sign analysis function \(P\to(V\to \mathcal{S})\). Now we can finally define and prove the soundness of the function.
 

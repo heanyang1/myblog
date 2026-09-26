@@ -1,0 +1,7 @@
+# Metadata for post series, keyed by the `series` value in post front
+# matter.  `description` is inserted into the sentence "This is the
+# first post of a series ..." rendered above series posts.
+hm-type-inference:
+  description: about implementing and proving a HM type inference system
+static-analysis:
+  description: about me learning static analysis

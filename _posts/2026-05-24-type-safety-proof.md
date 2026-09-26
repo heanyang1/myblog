@@ -1,10 +1,9 @@
 ---
 layout: post
-title:  "Type Safety Proof (Part 3)"
+title:  "Type Safety Proof"
+series: hm-type-inference
 ---
 
-> This is the third post of a series about implementing and proving a HM type inference system. Here's the [previous post](/myblog/2026/05/17/rewriting-interpreter-in-haskell.html).
->
 > Edited on 2026/6/7: the agent-coding mess is cleaned up. The proof should be correct, but I don't have enough brain power to read it. I'll update again when I fully understand the proof.
 >
 > Edited on 2026/6/13: I think get the overall idea of the proof. This should be the end of updating this post.
