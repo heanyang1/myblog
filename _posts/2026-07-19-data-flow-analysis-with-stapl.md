@@ -324,12 +324,12 @@ We can also get some constraints from the control flow of the program. Let \(s_1
 \[f(\mathrm{begin}(s))=\bigsqcup_{i=1}^nf(\mathrm{end}(s_i)).\]
 
 Putting these two things together, we have a set of equations that every correct result should have:
-\[f(\mathrm{end}(s))=\mathrm{transfer}(s)\left(\bigsqcup_{s'\in\mathrm{pred}(s)}f(\mathrm{end}(s'))\right),\ \forall s\in S\tag{1}\]
+\[f(\mathrm{end}(s))=\mathrm{transfer}(s)\left(\bigsqcup_{s'\in\mathrm{pred}(s)}f(\mathrm{end}(s'))\right),\ \forall s\in S\tag{eq:dfa-iteration}\]
 where \(\mathrm{pred}(s)\) is the predecessor of \(s\). These constraints applies to every sound solution \(f\), so it will definitely applies to the vector \(\Sigma=(\sigma_1,\sigma_2,\dots,\sigma_{|S|})\) we want to solve:
 \[\sigma_i=\mathrm{transfer}(s_i)\left(\bigsqcup_{j\in\{k|s_k\in\mathrm{pred}(s_i)\}}\sigma_j\right),\ i=1,2,\dots,|S|.\]
 
 By finding the least solution of the following equations, we can get \(\Sigma\) and solve the sign analysis problem:
-\[x_i=\mathrm{transfer}(s_i)\left(\bigsqcup_{j\in\{k|s_k\in\mathrm{pred}(s_i)\}}x_j\right),\ i=1,2,\dots,|S|.\tag{2}\]
+\[x_i=\mathrm{transfer}(s_i)\left(\bigsqcup_{j\in\{k|s_k\in\mathrm{pred}(s_i)\}}x_j\right),\ i=1,2,\dots,|S|.\tag{eq:dfa-system}\]
 
 If we want to analyze the program in the point \(\mathrm{begin}(s')\), we can write down the relation in terms of \(\mathrm{begin}(s)\) and solve the equations:
 \[x_i=\bigsqcup_{j\in\{k|s_k\in\mathrm{pred}(s_i)\}}\mathrm{transfer}(s_j)(x_j),\ i=1,2,\dots,|S|\]
@@ -338,7 +338,7 @@ There is one difference though: if \(s\) is the first statement of the program, 
 
 ## Fixed Points and Monotone Functions
 
-Let \(X=(x_1,\dots,x_{|S|})\), then the equation (2) becomes \(X=F(X)\) for some complex (but known) function \(F\). So the problem is reduced to finding the least fixed point of a function \(F\).
+Let \(X=(x_1,\dots,x_{|S|})\), then the equation \eqref{eq:dfa-system} becomes \(X=F(X)\) for some complex (but known) function \(F\). So the problem is reduced to finding the least fixed point of a function \(F\).
 
 We can prove that the function \(F\) (and most such functions in DFA) are *monotone*, and in next section we will prove that the least fixed point of \(F\) always exists and the algorithm to calculate it is almost trivial.
 
@@ -350,13 +350,13 @@ The following is the proof that \(F\) is monotone (the proof is not required for
 \[T(x_1,\dots,x_{|S|})=(\mathrm{transfer}(s_1)(x_1),\dots,\mathrm{transfer}(s_{|S|})(x_s)),\]
 \[JOIN(x_1,\dots,x_{|S|})=\left(\bigsqcup_{j\in\{k|s_k\in\mathrm{pred}(s_1)\}}x_j,\dots,\bigsqcup_{j\in\{k|s_k\in\mathrm{pred}(s_{|S|})\}}x_j\right).\]
 
-By proving that \(T\) and \(JOIN\) are monotone and using Lemma 1 (in the appendix), we know that \(F\) is monotone.
+By proving that \(T\) and \(JOIN\) are monotone and using \ref{lem:compose-monotone} (in the appendix), we know that \(F\) is monotone.
 
-By Lemma 2,3 and 4, \(JOIN\) is monotone.
+By \ref{lem:componentwise-monotone}, \ref{lem:weaken-monotone} and \ref{lem:join-monotone}, \(JOIN\) is monotone.
 
-By Lemma 2 and 3, to prove that \(T\) is monotone, we can prove that \(\mathrm{transfer}(s)\) is monotone for every statement \(s\).
+By \ref{lem:componentwise-monotone} and \ref{lem:weaken-monotone}, to prove that \(T\) is monotone, we can prove that \(\mathrm{transfer}(s)\) is monotone for every statement \(s\).
 
-The definition of \(\mathrm{transfer}(s)\) is given as `transferFn`. For a specific statement, it's either a function that does nothing or a function \({\mathcal{S}}^V\to(V\to \mathcal{S})\) that fits into Lemma 5:
+The definition of \(\mathrm{transfer}(s)\) is given as `transferFn`. For a specific statement, it's either a function that does nothing or a function \({\mathcal{S}}^V\to(V\to \mathcal{S})\) that fits into \ref{lem:update-monotone}:
 - The \(f\) is the identity function.
 - When the statement is `T.Input`, \(g(x)=\top\).
 - When the statement is `T.Assign`, \(g(x)\) is `\x -> evalSign x expr`.
@@ -375,8 +375,8 @@ evalSign state expr = case expr of
 ```
 - If `expr` is `T.Int`, then it's mapping everything to a constant and is trivially monotone.
 - If `expr` is `T.Var`, then it's accessing a value in the input map. It is monotone by the definition of map lattice.
-- If `expr` is `T.Binop op e1 e2` and assume that `\x -> evalSign x e1` and `\x -> evalSign x e2` are monotone. By viewing `evalBinOp op` as a function that inputs a product lattice and outputs a lattice and using Lemma 1 and 2, we know that if `evalBinOp op` is monotone, then the composite function is also monotone.
-- `T.UnOp` is similar to `T.Binop` except that we only need to use Lemma 1 to compose the two functions.
+- If `expr` is `T.Binop op e1 e2` and assume that `\x -> evalSign x e1` and `\x -> evalSign x e2` are monotone. By viewing `evalBinOp op` as a function that inputs a product lattice and outputs a lattice and using \ref{lem:compose-monotone} and \ref{lem:componentwise-monotone}, we know that if `evalBinOp op` is monotone, then the composite function is also monotone.
+- `T.UnOp` is similar to `T.Binop` except that we only need to use \ref{lem:compose-monotone} to compose the two functions.
 
 `evalBinOp op` and `evalUnOp op` are just lookup tables. We can write a simple function to verify their monotonicity by brute force:
 ```haskell
@@ -418,7 +418,7 @@ Run the program via `cabal run stapl-sign -- --check`, and there is `OK` in ever
 
 Here's the theorem:
 
-**Theorem.** Let \(L\) be a complete lattice with finite height \(h\) and \(f:L\to L\) be a monotone function, then \(f\) has a unique least fixed point.
+**Theorem.**\label{thm:finite-height-lfp} Let \(L\) be a complete lattice with finite height \(h\) and \(f:L\to L\) be a monotone function, then \(f\) has a unique least fixed point.
 
 *proof.* We claim that (a) there exists some \(n\in\mathbb{N}\) such that \(f^n(\perp)\) is a fixed point of \(f\), i.e. \(f^{n+1}(\perp)=f^n(\perp)\), (b) \(f^n(\perp)\) is the unique least fixed point of \(f\).
 
@@ -426,12 +426,12 @@ Here's the theorem:
 
 By definition of \(\perp\), \(\perp\sqsubseteq f(\perp)\). By assumption, \(\perp=f^0(\perp)\neq f(\perp)\).
 
-Because \(f\) is monotone and \(\perp\sqsubseteq f(\perp)\), therefore \(f(\perp)\sqsubseteq f^2(\perp)\). By assumption, \(f(\perp)\neq f^2(\perp)\). By Lemma 6, \(\perp\neq f^2(\perp)\). Therefore \(\perp,f(\perp),f^2(\perp)\) are different elements.
+Because \(f\) is monotone and \(\perp\sqsubseteq f(\perp)\), therefore \(f(\perp)\sqsubseteq f^2(\perp)\). By assumption, \(f(\perp)\neq f^2(\perp)\). By \ref{lem:sandwich-inequality}, \(\perp\neq f^2(\perp)\). Therefore \(\perp,f(\perp),f^2(\perp)\) are different elements.
 
 We can apply \(f\) to \(f(\perp)\sqsubseteq f^2(\perp)\) again and get the conclusion that \(f^2(\perp)\sqsubseteq f^3(\perp)\) and \(\perp,f(\perp),f^2(\perp),f^3(\perp)\) are different elements.
 
 Doing so repeatedly, and we will have a path with more than \(h\) element in the Hasse diagram:
-\[\perp\sqsubseteq f(\perp)\sqsubseteq f^2(\perp)\sqsubseteq \dots\sqsubseteq f^h(\perp).\tag{3}\]
+\[\perp\sqsubseteq f(\perp)\sqsubseteq f^2(\perp)\sqsubseteq \dots\sqsubseteq f^h(\perp).\tag{eq:iteration-chain}\]
 
 Which is a contradiction since the height of the lattice is \(h\).
 
@@ -459,7 +459,7 @@ Draw two lines perpendicular to Y axis and X axis respectively, then we got \(f(
 We can continue the process until it converge to the fixed point:
 ![4](/myblog/assets/2026-07-19/end.png)
 
-You can see in the plot that the relations in equation (3) also holds.
+You can see in the plot that the relations in equation \eqref{eq:iteration-chain} also holds.
 
 The following is StaPL's fixed point algorithm. It's more general in that it calculates both \(\mathrm{begin}(s)\) and \(\mathrm{end}(s)\), considers the entry point and uses `combine` rather than join to collect information from its predecessors:
 ```haskell
@@ -495,23 +495,23 @@ There are many algorithms that are more efficient than the naive fixed-point alg
 
 Most lemmas are exercises in the SPA textbook. I'll generalize the lemma only when it doesn't increase the complexity in proofs or notations.
 
-**Lemma 1.** Let \(X,Y,Z\) be lattice, \(f:X\to Y,g:Y\to Z\) be monotone function, then \(g\circ f:X\to Z\) is also monotone.
+**Lemma.**\label{lem:compose-monotone} Let \(X,Y,Z\) be lattice, \(f:X\to Y,g:Y\to Z\) be monotone function, then \(g\circ f:X\to Z\) is also monotone.
 
 *proof.* For every \(x_1,x_2\in X\), if \(x_1\sqsubseteq x_2\), then \(f(x_1)\sqsubseteq f(x_2)\), then
 \[(g\circ f)(x_1)=g(f(x_1))\sqsubseteq g(f(x_2))=(g\circ f)(x_2).\]
 
 Therefore \(g\circ f:X\to Z\) is monotone. \(\Box\)
 
-**Lemma 2.** Let \(X,Y\) be a lattice, \(f:X\to Y^n\) and \(f_i\) be its component on each dimension, i.e. \(f(x)=(f_1(x),\dots,f_n(x))\), then every \(f_i\) is monotone iff \(f\) is monotone.
+**Lemma.**\label{lem:componentwise-monotone} Let \(X,Y\) be a lattice, \(f:X\to Y^n\) and \(f_i\) be its component on each dimension, i.e. \(f(x)=(f_1(x),\dots,f_n(x))\), then every \(f_i\) is monotone iff \(f\) is monotone.
 
 *proof.* Let \(x,x'\in X\). If \(x\sqsubseteq x'\), then by definition of product lattice,
 \[\forall i,f_i(x)\sqsubseteq f_i(x')\Leftrightarrow (f_1(x),\dots,f_n(x))\sqsubseteq (f_1(x'),\dots,f_n(x')).\ \Box\]
 
-**Lemma 3.** Let \(X,Y,Z\) be lattices. For \(f:X\to Z\), we can construct a function \(f':X\times Y\to Z\) using \(f'(x,y)=f(x)\). If \(f\) is monotone, then \(f'\) is also monotone.
+**Lemma.**\label{lem:weaken-monotone} Let \(X,Y,Z\) be lattices. For \(f:X\to Z\), we can construct a function \(f':X\times Y\to Z\) using \(f'(x,y)=f(x)\). If \(f\) is monotone, then \(f'\) is also monotone.
 
 *proof.* For every \((x,y)\sqsubseteq(x',y')\), we have \(x\sqsubseteq x'\), therefore \(f'(x,y)=f(x)\sqsubseteq f(x')=f'(x',y')\). \(\Box\)
 
-**Lemma 4.** Let \(X\) be lattice and \(x_1,x_2\in X\). If we view \(x_1\sqcup x_2\) as functions \(X^2\to X\), then \(\sqcup\) are monotone (similarly, \(\sqcap\) is monotone. I'll leave it as an exercise).
+**Lemma.**\label{lem:join-monotone} Let \(X\) be lattice and \(x_1,x_2\in X\). If we view \(x_1\sqcup x_2\) as functions \(X^2\to X\), then \(\sqcup\) are monotone (similarly, \(\sqcap\) is monotone. I'll leave it as an exercise).
 
 *proof.* For every \((x_1,x_2)\sqsubseteq(x'_1,x'_2)\), we need to prove that \(x_1\sqcup x_2\sqsubseteq x'_1\sqcup x'_2\).
 
@@ -521,7 +521,7 @@ By (the first part of) definition of \(\sqcup\) (applied on \(x'_1\sqcup x'_2\))
 
 By (the second part of) definition of \(\sqcup\) (applied on \(x_1\sqcup x_2\)), \(x_1\sqcup x_2\sqsubseteq x'_1\sqcup x'_2\). \(\Box\)
 
-**Lemma 5.** Let \(X,Y\) be lattices, \(f: X\to(A\to Y)\) and \(g: X\to Y\) are monotone functions. Given an \(a_0\in A\), the function \(h(x)=f(x)[a_0\mapsto g(x)]\) is monotone.
+**Lemma.**\label{lem:update-monotone} Let \(X,Y\) be lattices, \(f: X\to(A\to Y)\) and \(g: X\to Y\) are monotone functions. Given an \(a_0\in A\), the function \(h(x)=f(x)[a_0\mapsto g(x)]\) is monotone.
 
 *proof.* For every \(x_1,x_2\in X\) where \(x_1\sqsubseteq x_2\), we need to prove that \(f(x_1)[a_0\mapsto g(x_1)]\sqsubseteq f(x_2)[a_0\mapsto g(x_2)]\).
 
@@ -531,7 +531,7 @@ By (the second part of) definition of \(\sqcup\) (applied on \(x_1\sqcup x_2\)),
   
   Because \(f\) is monotone, \(f(x_1)\sqsubseteq f(x_2)\). By definition of map lattice, for every \(a\in A\), the value of \(f(x_1)\) on \(a\) is less than the value of \(f(x_2)\) on \(a\). Thus the propersition holds. \(\Box\)
 
-**Lemma 6.** Let \(X\) be a partial order and \(x_1,x_2,x_3\in X\). If \(x_1\sqsubseteq x_2\), \(x_2\sqsubseteq x_3\) and \(x_2\neq x_3\), then \(x_1\neq x_3\).
+**Lemma.**\label{lem:sandwich-inequality} Let \(X\) be a partial order and \(x_1,x_2,x_3\in X\). If \(x_1\sqsubseteq x_2\), \(x_2\sqsubseteq x_3\) and \(x_2\neq x_3\), then \(x_1\neq x_3\).
 
 *proof.* Assume that \(x_1=x_3\), then by symmetry, \(x_3\sqsubseteq x_1\).
 

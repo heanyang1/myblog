@@ -29,11 +29,11 @@ Suppose that we have known the solution to the above example. Let \(a'\) be the 
 (d'+a'+b')\mathrm{mod}\ 2=1, \\
 (e'+b'+f')\mathrm{mod}\ 2=0, \\
 (f'+b'+c'+e')\mathrm{mod}\ 2=1. \\
-\end{cases}\tag{1}\]
+\end{cases}\tag{eq:lights-toggles}\]
 
 The first equation can be obtained by looking at the node \(a\). It should remain off, so it should be toggled by even number of times. Its neighbors are node \(d\), and any click to itself and its neighbors will toggle it once, so it will be toggled \(a'+d'\) times. The same is true for the node \(b\), except that it should be turned off by toggling odd number of times, this gives us the \(1\) in the right-hand side of the second equation.
 
-Note that all the parameters are in \(\mathbb{Z}_2\) (because of the simple graph constraint), therefore we can get rid of the annoying \(\text{mod}\ 2\) by solving the equations (1) in the field \((\mathbb{Z}_2,+,\cdot)\):
+Note that all the parameters are in \(\mathbb{Z}_2\) (because of the simple graph constraint), therefore we can get rid of the annoying \(\text{mod}\ 2\) by solving the equations \eqref{eq:lights-toggles} in the field \((\mathbb{Z}_2,+,\cdot)\):
 \[\begin{cases}
 a'+d'=0, \\
 b'+d'+e'+f'=1, \\
@@ -41,7 +41,7 @@ c'+f'=0, \\
 d'+a'+b'=1, \\
 e'+b'+f'=0, \\
 f'+b'+c'+e'=1. \\
-\end{cases}(a',b',c',d',e',f'\in\mathbb{Z}_2)\tag{2}\]
+\end{cases}(a',b',c',d',e',f'\in\mathbb{Z}_2)\tag{eq:lights-system}\]
 
 In fact, (as shown in Appendix B) we won't miss any solution by limiting the scope: if there is no solution on \(\mathbb{Z}_2\), neither will there be a solution on \(\mathbb{Z}\).
 

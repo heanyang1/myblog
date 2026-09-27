@@ -52,7 +52,7 @@ We will focus on one seemingly arbitrary property of the language: the informati
 \[I(x)=-\log_2\mathrm{Pr}(X=x).\]
 
 Since the characters are iid samples, according to [the law of large numbers](https://en.wikipedia.org/wiki/Law_of_large_numbers), for every \(\varepsilon>0\):
-\[\lim_{n\to\infty}\mathrm{Pr}\left(\left|\frac{1}{n}\sum_{i=1}^nI(x_i)-H(X)\right|<\varepsilon\right)=1,\tag{1}\]
+\[\lim_{n\to\infty}\mathrm{Pr}\left(\left|\frac{1}{n}\sum_{i=1}^nI(x_i)-H(X)\right|<\varepsilon\right)=1,\tag{eq:weak-lln}\]
 where \(H(X)=\mathbb{E}[I(X)]\) is the entropy of \(X\).
 
 Let \(\mathcal{A}=\{x^n\in\Omega^n:|\frac{1}{n}\sum_{i=1}^nI(x_i)-H(X)|<\varepsilon\}\) be the set of words where the average information content is close to the entropy (it's called **the (weak) typical set** in information theory). We know from the equation above that you will *almost surely* get an element of \(\mathcal{A}\) when sampling a word, despite that \(|\mathcal{A}|\) is relatively small as we will see.
@@ -91,7 +91,7 @@ We can use the probability distribution \((\frac{1}{2},\frac{1}{4},\dots,\frac{1
 Setting \(m=|\Omega|=8\) and using the result \(H(X)<2\), we got the first constraint
 \[\frac{2^{2n(1+\varepsilon)}}{8^n}<\frac{1}{5}\Rightarrow \varepsilon<1-\frac{1}{2n}\log_2 5.\]
 
-Unfortunately, weak LLN (1) doesn't tell us how the probability converges as \(n\to\infty\), and the simplest way I came up with is to sample a lot of words.
+Unfortunately, weak LLN \eqref{eq:weak-lln} doesn't tell us how the probability converges as \(n\to\infty\), and the simplest way I came up with is to sample a lot of words.
 {% highlight j %}
 n =: 6
 m =: 8
@@ -149,7 +149,7 @@ Note that there are some extra spaces in the text, but that doesn't change the p
 Our second language is a much richer language: there are an infinitive number of words, and as a result, we can not say that a set of a words' size is 20% of "the set of all words". Instead, we will proof that the word frequency in our language (asymptotically) satisfies [Zipf's law](https://en.wikipedia.org/wiki/Zipf%27s_law).
 
 **Zipf's law**: Let the probability of the \(i^{\text{th}}\) most frequent word in the language be \(f_i\), then
-\[f_i\propto\frac{1}{(i+\beta)^\alpha}\tag{2}\]
+\[f_i\propto\frac{1}{(i+\beta)^\alpha}\tag{eq:zipf-law}\]
 where \(\alpha>0\).
 
 If we take the logarithm of \(f\), then we have
@@ -192,7 +192,7 @@ You may have noticed that the size of \(S_k\) looks like the \((k+1)^{\text{th}}
 Finally, we can crack the problem of the frequency \(f_i\). If we can write \(k\) as an expression of \(i\), then its probability is just \(p^k\) times a constant.
 
 Here's the tricky part: we find that writing \(k\) as a function of \(i\) is harder than the other way, so we instead writing \(i\) as a function of \(k\) and take its inverse. We have
-\[\sum_{j=1}^{k-1}|S_j|\leq i\leq\sum_{j=1}^{k}|S_j|,\tag{3}\]
+\[\sum_{j=1}^{k-1}|S_j|\leq i\leq\sum_{j=1}^{k}|S_j|,\tag{eq:cdf-condition}\]
 and
 \[\begin{aligned}
 \sum_{j=1}^{k}|S_j| & =\sum_{j=1}^{k}\frac{\varphi^{k+1}-\psi^{k+1}}{\sqrt{5}} \\
@@ -200,7 +200,7 @@ and
 & =\frac{1}{\sqrt{5}}\left(\frac{\varphi^{k+1}-1}{\varphi-1}-\frac{\psi^{k+1}-1}{\psi-1}\right). \\
 \end{aligned}\]
 
-Because \(|\psi|<1\), when \(k\) is large, \(\psi^{k+1}\) is close to 0, and the equation (3) becomes
+Because \(|\psi|<1\), when \(k\) is large, \(\psi^{k+1}\) is close to 0, and the equation \eqref{eq:cdf-condition} becomes
 \[C_1\varphi^{k}+C_2-\varepsilon\leq i\leq C_1\varphi^{k+1}+C_2+\varepsilon,\]
 where \(C_1,C_2\) are constant that we don't care about, and \(\varepsilon\) is a relatively small value (in terms of \(k\)).
 

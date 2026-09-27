@@ -49,11 +49,11 @@ It's easy to verify that \(\gamma\) is a monotone map, and for every \(D\in\math
 Functions like \(\mathrm{collect}(p)\) are called a *collecting semantics* of StaPL. The way we derive \(\mathrm{collect}\) is (un)surprisingly similar to data flow analysis:
 1. For a statement \(s\in S\), there is a transfer function \(\mathrm{transfer}(s)\) that inputs \(\mathrm{collect}(\mathrm{begin}(s))(x)\) and outputs \(\mathrm{collect}(\mathrm{end}(s))(x)\). The definition of the \(\mathrm{transfer}(s)\) will be given later.
 2. Let \(\mathrm{pred}(s)\) be the set of predecessor of statement \(s\), then \[\mathrm{collect}(\mathrm{begin}(s))(x)=\bigcup_{t\in\mathrm{pred}(s)}\mathrm{collect}(\mathrm{end}(t))(x).\]
-3. We end up solving a set of equations \[x_i=\mathrm{transfer}(s_i)\left(\bigcup_{j\in\{k|s_k\in\mathrm{pred}(s_i)\}}x_j\right),\ i=1,2,\dots,|S|,\tag{1}\]
+3. We end up solving a set of equations \[x_i=\mathrm{transfer}(s_i)\left(\bigcup_{j\in\{k|s_k\in\mathrm{pred}(s_i)\}}x_j\right),\ i=1,2,\dots,|S|,\tag{eq:collect-equations}\]
 
-The solution to equation (1) is a fixed point of a function \(G:\mathcal{P}(\mathbb{Z})^{|S|}\to\mathcal{P}(\mathbb{Z})^{|S|}\). We can prove that it's a monotone function like what we've done in part 1, but we are not able to solve the equations with the fixed point theorem because \(\mathcal{P}(\mathbb{Z})\) is an infinite lattice. Nevertheless, the least fixed point exists and is unique due to the Tarski's fixed point theorem:
+The solution to equation \eqref{eq:collect-equations} is a fixed point of a function \(G:\mathcal{P}(\mathbb{Z})^{|S|}\to\mathcal{P}(\mathbb{Z})^{|S|}\). We can prove that it's a monotone function like what we've done in part 1, but we are not able to solve the equations with the fixed point theorem because \(\mathcal{P}(\mathbb{Z})\) is an infinite lattice. Nevertheless, the least fixed point exists and is unique due to the Tarski's fixed point theorem:
 
-**Theorem 1.** Let \(L\) be a complete lattice. Every monotone function \(f:L\to L\) has a unique least fixed point, denoted as \(\mathrm{lfp}(f)\).
+**Theorem.**\label{thm:knaster-tarski} Let \(L\) be a complete lattice. Every monotone function \(f:L\to L\) has a unique least fixed point, denoted as \(\mathrm{lfp}(f)\).
 
 *proof.* We claim that \(\mathrm{lfp}(f)=\sqcap D\), where \(D=\{x\in L|x\sqsupseteq f(x)\}\).
 
@@ -69,7 +69,7 @@ Let's generalize the problem a bit using category theory. Say we need to estimat
 
 The following lemma provides an alternative definition to soundness:
 
-**Lemma 1.** \(F\) is sound iff for every \(c\in \mathrm{Ob}(\mathcal{C}_1)\),\(\mathcal{D}_2(GR_1c,R_2Fc)\) is not empty.
+**Lemma.**\label{lem:soundness-criterion} \(F\) is sound iff for every \(c\in \mathrm{Ob}(\mathcal{C}_1)\),\(\mathcal{D}_2(GR_1c,R_2Fc)\) is not empty.
 
 *proof.* Both directions are similar. We only prove the (\(\Rightarrow\)) here.
 
@@ -79,7 +79,7 @@ Because \(F\) is sound, therefore \(\mathcal{C}_2(L_2G(R_1c),FL_1(R_1c))\) is no
 
 Let \(\varepsilon\) be the counit of \(L_1\vdash R_1\), then \(F\varepsilon_c\) is a morphism \(FL_1R_1c\to Fc\). So we have a morphism \(F\varepsilon_c\circ f:L_2GR_1c\to Fc\), which contradicts that \(\mathcal{C}_2(L_2GR_1c,Fc)\) is empty. \(\Box\)
 
-In our sign analysis example, \(\mathcal{D}_1=\mathcal{D}_2=\mathcal{P}(\mathbb{Z})^{|S|}\), \(\mathcal{C}_1=\mathcal{C}_2=\mathcal{S}^{|S|}\), \(L_1=L_2=\alpha'\) is the vectorized version of \(\alpha\) that maps \((D_1,\dots,D_{|S|})\) to \(\alpha(D_1),\dots,\alpha(D_{|S|})\), \(R_1=R_2=\gamma'\) is the vectorized \(\gamma\), \(F:\mathcal{S}^{|S|}\to\mathcal{S}^{|S|}\) is the functor derived from the equations that generates sign analysis results in Part 1, and \(G:\mathcal{P}(\mathbb{Z})^{|S|}\to\mathcal{P}(\mathbb{Z})^{|S|}\) is derived from the equations (1) in this post. To verify the soundness of sign analysis, we need to prove that
+In our sign analysis example, \(\mathcal{D}_1=\mathcal{D}_2=\mathcal{P}(\mathbb{Z})^{|S|}\), \(\mathcal{C}_1=\mathcal{C}_2=\mathcal{S}^{|S|}\), \(L_1=L_2=\alpha'\) is the vectorized version of \(\alpha\) that maps \((D_1,\dots,D_{|S|})\) to \(\alpha(D_1),\dots,\alpha(D_{|S|})\), \(R_1=R_2=\gamma'\) is the vectorized \(\gamma\), \(F:\mathcal{S}^{|S|}\to\mathcal{S}^{|S|}\) is the functor derived from the equations that generates sign analysis results in Part 1, and \(G:\mathcal{P}(\mathbb{Z})^{|S|}\to\mathcal{P}(\mathbb{Z})^{|S|}\) is derived from the equations \eqref{eq:collect-equations} in this post. To verify the soundness of sign analysis, we need to prove that
 1. \(F\) is a sound estimate of \(G\).
 2. If \(F\) is a sound, then the analysis result is sound. This is called *the soundness theorem* in SPA book.
 
@@ -87,15 +87,15 @@ The first part can be done mechanically by decomposing \(F\) and \(G\) into smal
 
 [^proof]: An AI agent finished the proof in Lean [here](https://github.com/heanyang1/proofs/blob/main/Proofs/Soundness_2026_09_06.lean), but I haven't proofread it yet. It also found some issues within the proofs in this post, and all of them are fixed by hand.
 
-**Theorem 2.** If for every \(d\in\mathcal{S}\), \(G\gamma'd\sqsubseteq \gamma'Fd\), then \(\alpha'(\mathrm{lfp}(G))\sqsubseteq\mathrm{lfp}(F)\).
+**Theorem.**\label{thm:soundness} If for every \(d\in\mathcal{S}\), \(G\gamma'd\sqsubseteq \gamma'Fd\), then \(\alpha'(\mathrm{lfp}(G))\sqsubseteq\mathrm{lfp}(F)\).
 
 *proof.* Assigning \(d=\mathrm{lfp}(F)\) in the soundness morphism yields \(G\gamma'\mathrm{lfp}(F)\sqsubseteq \gamma'F\mathrm{lfp}(F)\).
 
 Because \(\mathrm{lfp}(F)\) is a fixed point of \(F\), therefore \(\gamma'F\mathrm{lfp}(F)=\gamma'\mathrm{lfp}(F)\). Therefore \(G\gamma'\mathrm{lfp}(F)\sqsubseteq \gamma'\mathrm{lfp}(F)\). Therefore \(\gamma'\mathrm{lfp}(F)\in\{x|x\sqsupseteq Gx\}\).
 
-From the proof of theorem 1, we know that \(\mathrm{lfp}(G)=\sqcap\{x|x\sqsupseteq Gx\}\), therefore \(\mathrm{lfp}(G)\sqsubseteq\gamma'\mathrm{lfp}(F)\).
+From the proof of \ref{thm:knaster-tarski}, we know that \(\mathrm{lfp}(G)=\sqcap\{x|x\sqsupseteq Gx\}\), therefore \(\mathrm{lfp}(G)\sqsubseteq\gamma'\mathrm{lfp}(F)\).
 
-By the proposition 4 in Part 2, \(\alpha'\dashv\gamma'\), so \(\alpha'(\mathrm{lfp}(G))\sqsubseteq\mathrm{lfp}(F)\). \(\Box\)
+By \ref{prop:adjunction-product} in Part 2, \(\alpha'\dashv\gamma'\), so \(\alpha'(\mathrm{lfp}(G))\sqsubseteq\mathrm{lfp}(F)\). \(\Box\)
 
 ## Outro
 

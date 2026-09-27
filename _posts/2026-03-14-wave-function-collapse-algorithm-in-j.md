@@ -22,7 +22,7 @@ To make our life as J programmer easier, let me describe the problem and the alg
 
 The goal is to create a \(p\times q\) output matrix \(B\), where for every \(i\in[0,m),j\in[0,n)\),
 \[(B_{ij},B_{i-1\mathrm{mod}\ m,j})\in S_{up},\quad(B_{ij},B_{i+1\mathrm{mod}\ m,j})\in S_{down},\]
-\[(B_{ij},B_{i,j-1\mathrm{mod}\ n})\in S_{left},\quad(B_{ij},B_{i,j+1\mathrm{mod}\ n})\in S_{right}. \tag{1}\]
+\[(B_{ij},B_{i,j-1\mathrm{mod}\ n})\in S_{left},\quad(B_{ij},B_{i,j+1\mathrm{mod}\ n})\in S_{right}. \tag{eq:wfc-constraints}\]
 
 **The ESTM algorithm:**
 
@@ -39,7 +39,7 @@ The goal is to create a \(p\times q\) output matrix \(B\), where for every \(i\i
       and so on.
 3. If every element of \(B'\) has only one element (I'll call such element as a singleton), then we get a valid \(B\) by setting the element of \(B'_{ij}\) as \(B_{ij}\).
 
-Theoretically, the algorithm doesn't solve the problem because it will generate matrix that violates constraints in (1) under rare circumstances (see appendix A). A more serious issue is that in the propagation step, you have to think in individual elements and their neighbors, not the matrix as a whole, which makes it hard to implement in J. These two problems can be addressed by a slightly different algorithm where the propagation step is applied to all indexes, not just \((i,j)\).
+Theoretically, the algorithm doesn't solve the problem because it will generate matrix that violates constraints in \eqref{eq:wfc-constraints} under rare circumstances (see appendix A). A more serious issue is that in the propagation step, you have to think in individual elements and their neighbors, not the matrix as a whole, which makes it hard to implement in J. These two problems can be addressed by a slightly different algorithm where the propagation step is applied to all indexes, not just \((i,j)\).
 
 **The algorithm to implement:**
 
@@ -51,7 +51,7 @@ Theoretically, the algorithm doesn't solve the problem because it will generate 
    4. The propagation step: create a new matrix \(B^{(t+1)}\) where the element at index \((k,l)\) is
       \[\begin{aligned}
       B^{(t+1)}_{kl} & =B^{(t)}_{kl}\cap\left(\bigcup_{q\in B^{(t)}_{k-1\mathrm{mod}\ m,l}}N_{down}(q)\right)\cap\left(\bigcup_{q\in B^{(t)}_{k+1\mathrm{mod}\ m,l}}N_{up}(q)\right) \\
-      &\ \cap\left(\bigcup_{q\in B^{(t)}_{k,l-1\mathrm{mod}\ m}}N_{right}(q)\right)\cap\left(\bigcup_{q\in B^{(t)}_{k,l+1\mathrm{mod}\ m}}N_{left}(q)\right). \\ \end{aligned}\tag{2}\]
+      &\ \cap\left(\bigcup_{q\in B^{(t)}_{k,l-1\mathrm{mod}\ m}}N_{right}(q)\right)\cap\left(\bigcup_{q\in B^{(t)}_{k,l+1\mathrm{mod}\ m}}N_{left}(q)\right). \\ \end{aligned}\tag{eq:wfc-propagation}\]
    5. If every element of \(B^{(t+1)}\) is singleton, then we return a valid \(B\) by setting the element of \(B^{(t+1)}_{ij}\) as \(B_{ij}\). If there is empty set, then we reset \(B^{(t+1)}\) to \(B^{(0)}\).
 
 ## Some Intuition
@@ -230,7 +230,7 @@ NB. Here we use the trick introduced in appendix B again
 
 ## Propagation
 
-In this section we will translate the equation (2) into J sentenses. \(\bigcup_{q\in S}N_*(q)\) is just a matrix product given that \(N_*(p)\) is just the \(p^{\text{th}}\) row of the adjacency matrix:
+In this section we will translate the equation \eqref{eq:wfc-propagation} into J sentenses. \(\bigcup_{q\in S}N_*(q)\) is just a matrix product given that \(N_*(p)\) is just the \(p^{\text{th}}\) row of the adjacency matrix:
 {% highlight j %}
 NB. Get that union of things given a direction
 NB. Usage: B' union_of_things direction
@@ -238,7 +238,7 @@ unions =: 4 : '((-y) |. x) (+./ . *)"1 _ adj_mat y'
 NB.                         +./ . *                  Is the matrix product where `+`
 NB.                                                  is replaced by `+.` (union)
 NB.              _y                                  The adjacency matrix's direction
-NB.                                                  is reversed in equation (2)
+NB.                                                  is reversed in equation \eqref{eq:wfc-propagation}
 {% endhighlight %}
 
 Then the propagetion step can be done by taking the intersections of these unions:
