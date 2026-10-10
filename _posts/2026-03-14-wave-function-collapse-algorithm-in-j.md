@@ -326,9 +326,11 @@ get_image =: 3 : 'y (I."1) 1'
 (": get_image loop new_state 10 10) fwrites 'output.txt'
 {% endhighlight %}
 
-I won't bother writing a GUI for it. [A simple vibe-coded webapp](https://heanyang1.github.io/vctb/matrix-visualizer/visualizer.html) is good enough.
+I vibe-coded a simple web app to visualize the input and output matrix. Here's [The standalone webapp](https://heanyang1.github.io/vctb/matrix-visualizer/visualizer.html).
 
-![2](/myblog/assets/2026-03-14/2.png)
+<iframe src="{{ "/assets/2026-03-14/visualizer/index.html" | relative_url }}"
+        style="width: 100%; height: 720px; border: 1px solid #ddd; border-radius: 8px; background: #f5f5f5;"
+        title="Matrix Visualizer" loading="lazy"></iframe>
 
 ## Conclusion
 
