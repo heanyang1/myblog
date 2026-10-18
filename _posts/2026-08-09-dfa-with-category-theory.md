@@ -412,6 +412,7 @@ which holds by the naturality of the unit of \(L\dashv R\). \(\Box\)
 
 Most of the definition in this post are from the following materials:
 - [Bartosz Milewski's *Category Theory for Programmers*](https://bartoszmilewski.com/2014/10/28/category-theory-for-programmers-the-preface/) is a good starting point for programmers who have forgotten most of their college level math.
+- Reading Saunders Mac Lane's *Categories For the Working Mathematician* is the canonical way to learn category theory. You should be able to understand the first 4 chapters after reading this post.
 - [MIT 18.S097](https://ocw.mit.edu/courses/18-s097-applied-category-theory-january-iap-2019/) taught by David Spivak and Brendan Fong is a harder tutorial with more real-world examples.
 - If you are *really* good at math and happens to know Chinese, check out the first few chapters of [Wenwei Li's *Methods of algebra: Volume 1*](https://www.wwli.asia/docs/books#%E4%BB%A3%E6%95%B0%E5%AD%A6%E6%96%B9%E6%B3%95%E5%8D%B7%E4%B8%80-methods-of-algebra-volume-1-in-chinese).
 
