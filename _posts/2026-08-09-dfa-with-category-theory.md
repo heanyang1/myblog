@@ -4,15 +4,11 @@ title:  "Data Flow Analysis with Category Theory"
 series: static-analysis
 ---
 
-> Update on 2026/08/30: Added two proposition and their proofs.
->
-> Update on 2026/09/27: Found and fixed some bugs in the definition of adjunctions. The proofs may still be buggy.
+> I won't write any updates to this post here because there are too many. See the git history if you are curious about what's happened.
 
 When writing the previous post, I realized that lattices are just categories and I can avoid reinventing wheels by directly using some well-known theorems in category theory. So before proving the soundness of sign analysis, I'd like to take a little detour about category theory and how it can be used to understand the problem.
 
-If you are familiar with things like adjunctions and limits, feel free to skip this post. If not, you don't need to read any additional materials (this post should be self-contained), although I'll recommend you to read other books since this post only cover what is needed in DFA. [^update]
-
-[^update]: On the other hand, I haven't finished the soundness proof, so things in this post is just the tools being used so far, and maybe I'll add more content to this post later.
+The goal of this post is to introduce adjunctions in category theory, which plays an important role in the soundness proof of DFA. If you know what adjunction is, feel free to skip this post. If not, you don't need to read any additional materials (this post should be self-contained), and there is a reading list at the end of this post to cover what's missing here.
 
 This post is handwritten with some exceptions:
 - Some of the diagrams are drawn by AI.
@@ -38,12 +34,14 @@ Here are some examples of categories:
 
 **Isomorphism.** Let \( \mathcal{C}\) be a category and \(c,c'\) be its objects. There is an *isomorphism* between \(c\) and \(c'\) (denoted as \(c\cong c'\)) iff there are two morphisms \(f:c\to c',g:c'\to c\) such that \(f\circ g= \mathrm{id}_{c'},g\circ f= \mathrm{id}_c\).
 
-In a lattice, by reflectivity, if \(x\cong y\), then \(x=y\).
+In \(\mathsf{Set}\), every bijection is isomorphism.
+
+In a lattice, by antisymmetry, if \(x\cong y\), then \(x=y\).
 
 **Functors.** Let \(\mathcal{C},\mathcal{C}'\) be categories. A *functor* \(F:\mathcal{C}\to \mathcal{C}'\) has:
 - A function \(F:\mathrm{Ob}(\mathcal{C})\to\mathrm{Ob}(\mathcal{C}')\),
 - A function \(F:\mathrm{Mor}(\mathcal{C})\to\mathrm{Mor}(\mathcal{C}')\) that
-  - preserves morphisms, i.e. for every \(X,Y\in\mathrm{Ob}(\mathcal{C})\), there is a surjection \(F|_{\mathcal{C}(X,Y)}:\mathcal{C}(X,Y)\to\mathcal{C}'(FX,FY)\),
+  - preserves morphisms, i.e. for every \(X,Y\in\mathrm{Ob}(\mathcal{C})\), there is a function \(F|_{\mathcal{C}(X,Y)}:\mathcal{C}(X,Y)\to\mathcal{C}'(FX,FY)\),
   - preserves identity and composition, i.e. for morphisms \(f,g\), \(F(f\circ g)=Ff\circ Fg\), and for object \(X\), \(F\mathrm{id}_X=\mathrm{id}_{FX}\).
 
 I'm using some conventions here when it doesn't introduce ambiguity:
@@ -114,15 +112,95 @@ In lattice, we can define the meets \(\sqcap A\) as the product \(\prod A\) and 
 
 The objects constructed in this section are special cases of *limits and colimits*. The definition goes beyond the category \( \mathcal{C}\) and makes some proofs much harder, and is not necessary in lattices, so I'll not include it here.
 
+## Bifunctors
+
+**Bifunctors.** A *bifunctor* is a functor between the product category of two category and a category. Specifically, let \(\mathcal{C}_1,\mathcal{C}_2,\mathcal{D}\) be categories, then any functor \(F:\mathcal{C}_1\times\mathcal{C}_2\to\mathcal{D}\) is a bifunctor.
+
+Bifunctors are usually represented by infix notations. For example, \(C_1FC_2\) means \(F(C_1,C_2)\) for bifunctors \(F:\mathcal{C}_1\times\mathcal{C}_2\to\mathcal{D}\). I'll only use infix notations when the symbol itself is infix notation (e.g. \(\times\)).
+
+Given a bifunctor \(F:\mathcal{C}_1\times\mathcal{C}_2\to\mathcal{D}\), we can construct a functor \(F(*,Y):\mathcal{C_1}\to\mathcal{D}\) for every object \(Y\in\mathcal{C}_2\) by mapping an object \(X\) to \(F(X,Y)\) and a morphism \(f\) to \(F(f,\mathrm{id}_Y)\). The functorality can be reduced to the functorality of \(F\).
+
+Similarly, we can define a functor \(F(X,*):\mathcal{C_2}\to\mathcal{D}\) for every object \(X\in\mathcal{C}_1\). \(F(*,Y)\) and \(F(X,*)\) are related:
+
+**Proposition.**\label{prop:bifunctor-commute} For the bifunctor \(F:\mathcal{C}_1\times\mathcal{C}_2\to\mathcal{D}\) and \(f:X_1\to X_2\in\mathrm{Mor}(\mathcal{C}_1),g:Y_1\to Y_2\in\mathrm{Mor}(\mathcal{C}_2)\), the following diagram commutes:
+\[
+\begin{CD}
+F(X_1,Y_1) @>F(f,\mathrm{id}_{Y_1})>> F(X_2,Y_1) \\
+@VF(\mathrm{id}_{X_1},g)VV @VVF(\mathrm{id}_{X_2},g)V \\
+F(X_1,Y_2) @>F(f,\mathrm{id}_{Y_2})>> F(X_2,Y_2)
+\end{CD}
+\]
+
+*proof.* By functorality of \(F\),
+\[F(f,\mathrm{id}_{Y_2})\circ F(\mathrm{id}_{X_1},g)=F(f\circ\mathrm{id}_{X_1},\mathrm{id}_{Y_2}\circ g)=F(f,g),\tag{eq:bifunctor-commute}\]
+\[F(\mathrm{id}_{X_2},g)\circ F(f,\mathrm{id}_{Y_1})=F(\mathrm{id}_{X_2}\circ f,g\circ\mathrm{id}_{Y_1})=F(f,g),\]
+hence the two paths are the same. \(\Box\)
+
+The converse is true:
+
+**Proposition.**\label{prop:bifunctor-construct} If we have a functor \(F_Y:\mathcal{C}_1\to \mathcal{D}\) for every \(Y\in\mathrm{Ob}(\mathcal{C}_2)\) and \(F_X:\mathcal{C}_2\to \mathcal{D}\) for every \(X\in\mathrm{Ob}(\mathcal{C}_1)\) such that
+1. \(F_Y X=F_X Y\) for every \(X\in\mathrm{Ob}(\mathcal{C}_1)\), \(Y\in\mathrm{Ob}(\mathcal{C}_2)\),
+2. for every \(f:X_1\to X_2\in\mathrm{Mor}(\mathcal{C}_1),g:Y_1\to Y_2\in\mathrm{Mor}(\mathcal{C}_2)\), \(F_{Y_2}f\circ F_{X_1}g=F_{X_2}g\circ F_{Y_1}f\),
+
+then we can construct a bifunctor \(F:\mathcal{C}_1\times\mathcal{C}_2\to\mathcal{D}\) by mapping object \((X,Y)\) to \(F_XY\) and morphism \((f,g)\) to \(F_{Y_2}f\circ F_{X_1}g\).
+
+*proof.* We need to prove the functorality of \(F\): for every morphism \(f_1:X_1\to X_2,f_2:X_2\to X_3\in\mathrm{Mor}(\mathcal{C}_1)\), \(g_1:Y_1\to Y_2,g_2:Y_2\to Y_3\in\mathrm{Mor}(\mathcal{C}_2)\),
+\[F((f_2,g_2)\circ (f_1,g_1))=F(f_2,g_2)\circ F(f_1,g_1).\]
+
+Here's the step by step derivation:
+\[\begin{aligned}
+F((f_2,g_2)\circ (f_1,g_1)) & =F(f_2\circ f_1,g_2\circ g_1) \\
+& =F_{Y_3}(f_2\circ f_1)\circ F_{X_1}(g_2\circ g_1) & (\text{By definition of }F) \\
+& =F_{Y_3}f_2\circ F_{Y_3}f_1\circ F_{X_1}g_2\circ F_{X_1}g_1 & (\text{By functorality of }F_{Y_3},F_{X_1}) \\
+& =F_{Y_3}f_2\circ F_{X_2}g_2\circ F_{Y_3}f_1\circ F_{X_1}g_1 & (\text{Using the second requirement}) \\
+& =F(f_2,g_2)\circ F(f_1,g_1)\ \Box & (\text{By definition of }F)
+\end{aligned}\]
+
+Bifunctors are functors by definition, so there can be natural transformations between two bifunctors. The naturality can be reduced to the naturality of their functors:
+
+**Proposition.**\label{prop:bifunctor-natural} Let \(F,G:\mathcal{C}_1\times\mathcal{C}_2\to\mathcal{D}\) be bifunctors and \(\alpha\) be a set of morphisms \(\{\alpha_{X,Y}\in\mathcal{D}(F(X,Y),G(X,Y))|X\in\mathrm{Ob}(\mathcal{C}_1),Y\in\mathrm{Ob}(\mathcal{C}_2)\}\). \(\alpha\) is natural transformation iff both of the following are true:
+1. for every object \(X\) in \(\mathcal{C}_1\), \(\alpha_X=\{\alpha_{X,Y}\in\mathcal{D}(F(X,Y),G(X,Y))|Y\in\mathrm{Ob}(\mathcal{C}_2)\}\) is natural transformation between \(F(X,*)\) and \(G(X,*)\),
+2. for every object \(Y\) in \(\mathcal{C}_2\), \(\alpha_Y=\{\alpha_{X,Y}\in\mathcal{D}(F(X,Y),G(X,Y))|X\in\mathrm{Ob}(\mathcal{C}_1)\}\) is natural transformation between \(F(*,Y)\) and \(G(*,Y)\).
+
+*proof.* (\(\Rightarrow\)) if \(\alpha\) is natural transformation, then for every morphism \(f:(X_1,Y_1)\to(X_2,Y_2)\) in \(\mathcal{C}_1\times\mathcal{C}_2\),
+\[
+\begin{CD}
+F(X_1,Y_1) @>\alpha_{X_1,Y_1}>> G(X_1,Y_1) \\
+@VFfVV @VVGfV \\
+F(X_2,Y_2) @>>\alpha_{X_2,Y_2}> G(X_2,Y_2)
+\end{CD}
+\]
+commutes.
+
+Therefore for every object \(X\) in \(\mathcal{C}_1\), for every morphism \(f:Y_1\to Y_2\) in \(\mathcal{C}_2\),
+\[
+\begin{CD}
+F(X,Y_1) @>\alpha_{X,Y_1}>> G(X,Y_1) \\
+@VF(\mathrm{id}_{X}\times f)VV @VVG(\mathrm{id}_{X}\times f)V \\
+F(X,Y_2) @>>\alpha_{X,Y_2}> G(X,Y_2)
+\end{CD}
+\]
+commutes, which means \(\alpha_X\) is natural transformation. Similarly \(\alpha_Y\) is natural transformation.
+
+(\(\Leftarrow\)) Using the equation \ref{eq:bifunctor-commute} backwards, then we have a decomposition of every morphism \((f,g):(X_1,Y_1)\to(X_2,Y_2)\) in \(\mathcal{C}_1\times\mathcal{C}_2\). Then the diagram
+\[
+\begin{CD}
+F(X_1,Y_1) @>\alpha_{X_1,Y_1}>> G(X_1,Y_1) \\
+@VF(f,\mathrm{id}_{Y_1})VV @VVG(f,\mathrm{id}_{Y_1})V \\
+F(X_2,Y_1) @>\alpha_{X_2,Y_1}>> G(X_2,Y_1) \\
+@VF(\mathrm{id}_{X_2},g)VV @VVG(\mathrm{id}_{X_2},g)V \\
+F(X_2,Y_2) @>>\alpha_{X_2,Y_2}> G(X_2,Y_2)
+\end{CD}
+\]
+commutes because the two requirements are satisfied. \(\Box\)
+
+Here are some examples of bifunctor:
+1. The product bifunctor \(\times\) that maps two objects \((X,Y)\) to \(X\times Y\) in the category \(\mathcal{C}_1\times\mathcal{C}_2\) and two morphisms \((f,g)\) to \(f\times g\).
+2. The hom-set in a category \(\mathcal{C}\) forms a bifunctor \(\mathcal{C}(*,*):\mathcal{C}^{\mathrm{op}}\times\mathcal{C}\to \mathsf{Set}\) (for simplicity, \(\mathcal{C}(*,*)\) is denoted as \(\hom\) later). For \(X\in\mathrm{Ob}(\mathcal{C}^{\mathrm{op}})=\mathrm{Ob}(\mathcal{C})\) (\(\mathcal{C}\) and \(\mathcal{C}^{\mathrm{op}}\) are the same in terms of objects) and \(Y\in\mathrm{Ob}(\mathcal{C})\), \(\hom(X,Y)=\mathcal{C}(X,Y)\). For every morphisms \(f:X_1\to X_2\) in \(\mathcal{C}^{\mathrm{op}}\) and \(g:Y_1\to Y_2\) in \(\mathcal{C}\), \(\hom(f,g)\) is a function \(\mathcal{C}(X_1,Y_1)\to\mathcal{C}(X_2,Y_2)\) that maps morphism \(h:X_1\to Y_1\) to \(g\circ h\circ f^{\mathrm{op}}:X_2\to Y_2\).
+
 ## Adjunctions
 
-**Hom-functors.** The hom-set in a category \(\mathcal{C}\) forms a functor \(\mathcal{C}(*,Y):\mathcal{C}^{\mathrm{op}}\to \mathsf{Set}\) given any \(Y\in\mathcal{C}\):
-- \(\mathcal{C}(*,Y)\) maps object \(X\) in \( \mathrm{Ob}(\mathcal{C}^{\mathrm{op}})\) to a hom-set \(\mathcal{C}(X,Y)\).
-- For every morphism \(f:X\to X'\) in \(\mathcal{C}^{\mathrm{op}}\), we reverse its arrow and get a morphism \(f^{\mathrm{op}}:X'\to X\) in \(\mathcal{C}\), and define the morphism \(\mathcal{C}(*,Y)(f):\mathcal{C}(X,Y)\to\mathcal{C}(X',Y)\) as: for every morphism \(g\in\mathcal{C}(X,Y)\), \(\mathcal{C}(*,Y)(f)(g)=g\circ f^{\mathrm{op}}\in\mathcal{C}(X',Y) \) (Verify the functorality if you are interested).
-
-Similarly, we can fix the source of the hom-set to get a functor \(\mathcal{C}(X,*):\mathcal{C}\to \mathsf{Set}\). The details are left as exercises.
-
-For simplicity, we define \(\mathcal{C}(f,Y):=\mathcal{C}(*,Y)(f)\) and \(\mathcal{C}(X,f):=\mathcal{C}(X,*)(f)\). If \(X,Y, \mathcal{C}\) are well-defined in the context, then we'll further shorten it as \(f^*:=\mathcal{C}(f,Y)\) and \(f_*:=\mathcal{C}(X,f)\).
+We can generalize the \(\hom\) functor above to handle two related categories at once.
 
 **Adjunctions.** Let \(\mathcal{C},\mathcal{D}\) be two categories, \(L:\mathcal{D}\to\mathcal{C},R:\mathcal{C}\to\mathcal{D}\) be functors like the following diagram:
 ```tikz
@@ -138,22 +216,35 @@ For simplicity, we define \(\mathcal{C}(f,Y):=\mathcal{C}(*,Y)(f)\) and \(\mathc
 \end{document}
 ```
 
-If for every \(c\in \mathrm{Ob}( \mathcal{C}),d\in \mathrm{Ob}(\mathcal{D})\), there is an isomorphism \(\varphi_{c,d}:\mathcal{C}(Ld,c)\cong\mathcal{D}(d,Rc)\) such that for every \(g:c\to c'\in \mathrm{Mor}( \mathcal{C}),h:d'\to d\in \mathrm{Mor}( \mathcal{D}^{ \mathrm{op}})\), the following diagrams commute:
+Consider the following two bifunctors:
+1. \(\mathcal{C}(L*,*):\mathcal{C}\times\mathcal{D}^{\mathrm{op}}\to\mathsf{Set}\) that maps an object \((c,d)\) to \(\mathcal{C}(Ld,c)\) and a morphism \((f,g):(c,d)\to(c',d')\) to a function that maps morphism \(h:Ld\to c\) to \(f\circ h\circ Lg^{\mathrm{op}}:Ld'\to c'\),
+2. \(\mathcal{D}(*,R*):\mathcal{C}\times\mathcal{D}^{\mathrm{op}}\to\mathsf{Set}\) that maps an object \((c,d)\) to \(\mathcal{D}(d,Rc)\) and a morphism \((f,g):(c,d)\to(c',d')\) to a function that maps morphism \(h:d\to Rc\) to \(Rf\circ h\circ g^{\mathrm{op}}:d'\to Rc'\).
+
+If there is a isomorphism \(\varphi:\mathcal{C}(L*,*)\cong\mathcal{D}(*,R*)\) in the category of bifunctors \(\mathsf{Set}^{\mathcal{C}\times\mathcal{D}^{\mathrm{op}}}\), then the tuple of functors and the isomorphism \((L,R,\varphi)\) forms an *adjunction*. \(L\) is called *the left adjoint to* \(R\) and \(R\) is called *the right adjoint to* \(L\), or just written as \(L\dashv R\). \(\Box\)
+
+Let's unpack the definition:
+- An isomorphism \(\varphi\) between the two (bi)functors \(\mathcal{C}(L*,*)\) and \(\mathcal{D}(*,R*)\) in the category of (bi)functors are a pair of natural transformations \(\varphi:\mathcal{C}(L*,*)\to\mathcal{D}(*,R*)\) and \(\varphi^{-1}:\mathcal{D}(*,R*)\to\mathcal{C}(L*,*)\) such that \(\varphi\circ\varphi^{-1}=\mathrm{id}_{\mathcal{D}(*,R*)}\), \(\varphi^{-1}\circ\varphi=\mathrm{id}_{\mathcal{C}(L*,*)}\).
+- \(\varphi\) is a set of morphisms \(\{\varphi_{c,d}:\mathcal{C}(Ld,c)\to\mathcal{D}(d,Rc)|(c,d)\in\mathcal{C}\times\mathcal{D}^{\mathrm{op}}\}\). Using \ref{prop:bifunctor-natural}, the naturality holds iff the following two squares commutes for every \(g:c\to c'\) in \(\mathcal{C}\) and \(h:d\to d'\) in \(\mathcal{D}^{\mathrm{op}}\) (where \(\mathcal{C}(Ld,g)\) is the shorthand of \((\mathcal{C}(L*,*))(*,d)g\) [^unpack] and so on):
 
 \[
 \begin{CD}
 \mathcal{C}(Ld,c) @>\varphi_{c,d}>> \mathcal{D}(d,Rc) \\
-@Vg_*VV @VV(Rg)_*V \\
+@V\mathcal{C}(Ld,g)VV @VV\mathcal{D}(d,Rg)V \\
 \mathcal{C}(Ld,c') @>>\varphi_{c',d}> \mathcal{D}(d,Rc')
 \end{CD}
-\qquad
+\quad\quad\quad
 \begin{CD}
 \mathcal{C}(Ld,c) @>\varphi_{c,d}>> \mathcal{D}(d,Rc) \\
-@A(L^{\mathrm{op}}h)^*AA @AAh^*A \\
+@A\mathcal{C}(Lh^{\mathrm{op}},c)AA @AA\mathcal{D}(h^{\mathrm{op}},Rc)A \\
 \mathcal{C}(Ld',c) @>>\varphi_{c,d'}> \mathcal{D}(d',Rc)
 \end{CD}
-\tag{eq:adjunction-naturality}\]
-then the tuple of functors and the isomorphism \((L,R,\varphi)\) forms an *adjunction*. \(L\) is called *the left adjoint to* \(R\) and \(R\) is called *the right adjoint to* \(L\), or just written as \(L\dashv R\).
+\tag{eq:adjunction-naturality}
+\]
+
+[^unpack]: If you find \((\mathcal{C}(L*,*))(*,d)g\) confusing, let \(F:=\mathcal{C}(L*,*)\) and the expression becomes \(F(*,d)g\). Now it should be clear that it's a functor applies to the morphism \(g\).
+
+- There are similar naturality claims about \(\varphi^{-1}\).
+- \(\varphi\circ\varphi^{-1}=\mathrm{id}_{\mathcal{D}(*,R*)}\), \(\varphi^{-1}\circ\varphi=\mathrm{id}_{\mathcal{C}(L*,*)}\) means for every \((c,d)\) in \(\mathcal{C}\times\mathcal{D}^{\mathrm{op}}\), \(\varphi_{c,d}\circ\varphi^{-1}_{c,d}=\mathrm{id}_{\mathcal{D}(d,Rc)}\) and \(\varphi^{-1}_{c,d}\circ\varphi_{c,d}=\mathrm{id}_{\mathcal{C}(Ld,c)}\), which means \(\mathcal{C}(Ld,c)\cong\mathcal{D}(d,Rc)\) and \(\varphi_{c,d}\) is the isomorphism.
 
 There is an equivalent definition of the adjunctions that are handy when proving things. You don't need to understand its proof to understand the topic, so I'll put it in the appendix.
 
@@ -169,23 +260,20 @@ There is an equivalent definition of the adjunctions that are handy when proving
   \node (Rc)  at (0,0)      {$Rc$};
   \node (LRc) at (3.6,0)    {$(L\circ R)c$};
   \node (c)   at (6.8,0)    {$c$};
-  \draw[->,dashed] (d) to node[left] {$g$} (Rc);
+  \draw[->] (d) to node[left] {$g$} (Rc);
   \draw[->] (Ld) to node[left] {$Lg$} (LRc);
   \draw[->] (Ld) to node[sloped,above] {$f$} (c);
   \draw[->] (LRc) to node[below] {$\varepsilon_c$} (c);
 \end{tikzpicture}
 \end{document}
 ```
-As shown in the diagram [^unique], the unique here means there should be *only one* morphism \(d\to Rc\).
 2. There is a natural transformation \(\eta:\mathrm{id}_{\mathcal{D}}\to R\circ L\) (called *unit*) such that for every object \(d\) in \(\mathcal{D}\) and object \(c\) in \(\mathcal{C}\), if there is a morphism \(g:d\to Rc\), then there is a unique morphism \(f:Ld\to c\) such that \(g=Rf\circ \eta_d\).
-
-[^unique]: I use dashed line for unique morphisms on commute diagrams.
 
 The following are the direct results of adjunctions:
 
 **Proposition**\label{prop:right-adjoint-terminal} (Right adjoints preserves terminal objects). For an adjunction \((L,R, \varphi)\) between categories \(\mathcal{C},\mathcal{D}\), if terminal objects exists in both categories and \(c\) is the terminal object in \( \mathcal{C}\), then \(Rc\) is the terminal object in \( \mathcal{D}\).
 
-*proof.* For every object \(d\in \mathrm{Ob}( \mathcal{D})\), because \(c\) is initial object of \( \mathcal{C}\), therefore there exists unique morphism \( Ld\to c\), therefore \(\mathcal{C}(Ld,c)\) will have exactly one morphism.
+*proof.* For every object \(d\in \mathrm{Ob}( \mathcal{D})\), because \(c\) is terminal object of \( \mathcal{C}\), therefore there exists unique morphism \( Ld\to c\), therefore \(\mathcal{C}(Ld,c)\) will have exactly one morphism.
 
 Because \( \varphi_{c,d}:\mathcal{C}(Ld,c)\cong\mathcal{D}(d,Rc)\), therefore \(\mathcal{D}(d,Rc)\) will also have exactly one morphism. This is true for every \(d\in \mathrm{Ob}( \mathcal{D})\), hence \(Rc\) is the terminal object in \( \mathcal{D}\). \(\Box\)
 
@@ -229,13 +317,11 @@ Because \( \mathcal{C}, \mathcal{D}\) are lattices, therefore \(\eta\) and \( \v
 
 The following propositions allow us to create adjunction pairs on product and map lattices easily.
 
-**Proposition.**\label{prop:adjunction-product} Let \(\mathcal{C}_1, \mathcal{D}_1, \mathcal{C}_2, \mathcal{D}_2\) be categories and \(L_1: \mathcal{D}_1\to \mathcal{C}_1,R_1: \mathcal{C}_1\to \mathcal{D}_1, L_2: \mathcal{D}_2\to \mathcal{C}_2,R_2: \mathcal{C}_2\to \mathcal{D}_2\) be functors. If \(L_1\) and \(R_1\), \(L_2\) and \(R_2\) forms two adjunction pairs, then there exists functors \(L': \mathcal{D}_1\times{\mathcal{D}}_2\to \mathcal{C}_1\times\mathcal{C}_2\) and \(R': \mathcal{C}_1\times\mathcal{C}_2\to \mathcal{D}_1\times{\mathcal{D}}_2\) such that \(L',R'\) forms an adjunction pair.
+**Proposition.**\label{prop:adjunction-product} Let \(\mathcal{C}_1, \mathcal{D}_1, \mathcal{C}_2, \mathcal{D}_2\) be categories and \(L_1: \mathcal{D}_1\to \mathcal{C}_1,R_1: \mathcal{C}_1\to \mathcal{D}_1, L_2: \mathcal{D}_2\to \mathcal{C}_2,R_2: \mathcal{C}_2\to \mathcal{D}_2\) be functors. If \(L_1\dashv R_1\), \(L_2\dashv R_2\), then \(L_1\times L_2\dashv R_1\times R_2\).
 
 *proof*. I'm getting lazy by this point and decided to let an AI agent write a proof in Lean4:
 ```lean
 -- Imports and universes are omitted
-
-section Proposition4
 
 -- Defines categories and adjunctions. The notation is a bit weird but understandable.
 -- BTW, you can view the definition by hovering on the symbol if you are using VSCode
@@ -261,8 +347,6 @@ def Adjunction.prod : L₁.prod L₂ ⊣ R₁.prod R₂ where
         ext
         · exact adj₁.counit.naturality f.1
         · exact adj₂.counit.naturality f.2 }
-
-end Proposition4
 ```
 
 The naturality proof is like an "It's trivial" in math textbook. Let me explain it in detail.
@@ -282,8 +366,6 @@ By definition, \(L_1'\) maps any object \(d\in \mathrm{Ob}(\mathcal{D})\) to \(L
 
 *proof*. Used LLM and got a "trivial answer" again:
 ```lean
-section Proposition5
-
 variable (I : Type u₅) [Category.{v₅} I]
   {C : Type u₁} [Category.{v₁} C] {D : Type u₂} [Category.{v₂} D]
   {L : D ⥤ C} {R : C ⥤ D} (adj : L ⊣ R)
@@ -296,8 +378,6 @@ def Adjunction.postcompose :
   counit :=
     { app := fun F => whiskerLeft F adj.counit
       naturality := by intros; ext; simp }
-
-end Proposition5
 ```
 
 The explaination:
@@ -337,55 +417,60 @@ Most of the definition in this post are from the following materials:
 
 ## Appendix: Equivalence Proof
 
-(\(\varphi\Rightarrow\varepsilon,\eta\)) Given \(\varphi_{c,d}\) for every \(c,d\), the simplest way to construct that has ths same "signature" as \(\eta:I_\mathcal{D}\to R\circ L\) is to pass identity morphism \( \mathrm{id}_{Ld}\) to \(\varphi_{Ld,d}\), i.e.
+(\(\varphi\Rightarrow\varepsilon,\eta\)) Given \(\varphi\), the simplest way to construct that has ths same "signature" as \(\eta:\mathrm{id}_\mathcal{D}\to R\circ L\) is to pass identity morphism \( \mathrm{id}_{Ld}\) to \(\varphi_{Ld,d}\), i.e.
 \[\eta=\{\varphi_{Ld,d}\ \mathrm{id}_{Ld}\in \mathcal{D}(d,R(Ld))|d\in \mathrm{Ob}( \mathcal{D})\},\]
 and this is the unit we wanted.
 
-By diagram \eqref{eq:adjunction-naturality}, for every \(g:d\to d'\), the following diagram commutes:
+For every \(g:d\to d'\), we apply \(Lg\) to the left of diagram \eqref{eq:adjunction-naturality} and \(g^\mathrm{op}\) to the diagram on the right to form the following commute diagram:
 \[
 \begin{CD}
-\mathcal{C}(Ld,Ld) @>(Lg)_*>> \mathcal{C}(Ld,Ld') @<(L^{\mathrm{op}}(g^\mathrm{op}))^*<< \mathcal{C}(Ld',Ld') \\
-@V\varphi_{Ld,d} VV @VV\varphi_{Ld',d} V @VV\varphi_{Ld',d} V \\
-\mathcal{D}(d,R(Ld)) @>>(R(Lg))_*> \mathcal{D}(d,R(Ld')) @<(g^\mathrm{op})^*<< \mathcal{D}(d',R(Ld'))
+\mathcal{C}(Ld,Ld) @>\mathcal{C}(Ld,Lg)>> \mathcal{C}(Ld,Ld') @<\mathcal{C}(Lg^{\mathrm{op}},Ld')<< \mathcal{C}(Ld',Ld') \\
+@V\varphi_{Ld,d} VV @VV\varphi_{Ld',d} V @VV\varphi_{Ld',d'} V \\
+\mathcal{D}(d,R(Ld)) @>\mathcal{D}(d,R(Lg))>> \mathcal{D}(d,R(Ld')) @<\mathcal{D}(g^\mathrm{op},R(Ld'))<< \mathcal{D}(d',R(Ld'))
 \end{CD}
 \]
 
-The objects in the diagram are sets and morphisms are functions, so we can apply the functions to specific elements in the sets. Applying the left square to \(\mathrm{id}_{Ld}\) and the right square to \(\mathrm{id}_{Ld'}\) yields:
+The objects in the diagram are sets and morphisms are functions, so we can apply the functions to specific elements in the sets. Applying the left square to \(\mathrm{id}_{Ld}\) yields:
 \[
 \begin{aligned}
-    & (\mathcal{D}(d,(R\circ L)g)\circ\varphi_{Ld,d})\ \mathrm{id}_{Ld}=(\varphi_{Ld',d}\circ\mathcal{C}(Ld,Lg))\ \mathrm{id}_{Ld} \\
-    & \Rightarrow\mathcal{D}(d,(R\circ L)g)\ \eta_d=\varphi_{Ld',d}(\mathcal{C}(Ld,Lg)\ \mathrm{id}_{Ld}), \\
-    & (\mathcal{D}(g^\mathrm{op},(R\circ L)d')\circ\varphi_{d',Ld'})\ \mathrm{id}_{Ld'}=(\varphi_{d,Ld'}\circ\mathcal{C}(L^{\mathrm{op}}(g^\mathrm{op}),Ld'))\ \mathrm{id}_{Ld'} \\
-    & \Rightarrow\mathcal{D}(g^\mathrm{op},(R\circ L)d')\ \eta_{d'}=\varphi_{d,Ld'}(\mathcal{C}((Lg)^\mathrm{op},Ld')\ \mathrm{id}_{Ld'}).
+    & (\mathcal{D}(d,R(Lg))\circ\varphi_{Ld,d})\ \mathrm{id}_{Ld}=(\varphi_{Ld',d}\circ\mathcal{C}(Ld,Lg))\ \mathrm{id}_{Ld} \\
+    & \Rightarrow\mathcal{D}(d,R(Lg))\ \eta_d=\varphi_{Ld',d}(\mathcal{C}(Ld,Lg)\ \mathrm{id}_{Ld}), \\
+    & \Rightarrow(\mathcal{D}(*,R*)(*,d)Lg)\ \eta_d=\varphi_{Ld',d}((\mathcal{C}(L*,*)(*,d)Lg)\ \mathrm{id}_{Ld}), \\
+    & (\mathcal{D}(g^\mathrm{op},R(Ld'))\circ\varphi_{Ld',d'})\ \mathrm{id}_{Ld}=(\varphi_{Ld',d'}\circ\mathcal{C}(Lg^{\mathrm{op}},Ld))\ \mathrm{id}_{Ld'} \\
+    & \Rightarrow\mathcal{D}(g^\mathrm{op},R(Ld'))\eta_{d'}=\varphi_{Ld',d'}(\mathcal{C}(Lg^{\mathrm{op}},Ld)\ \mathrm{id}_{Ld'}) \\
+    & \Rightarrow(\mathcal{D}(*,R*)(Ld',*)g^\mathrm{op})\eta_{d'}=\varphi_{Ld',d'}((\mathcal{C}(L*,*)(Ld,*)g^{\mathrm{op}})\ \mathrm{id}_{Ld'}).
 \end{aligned}
 \]
 
-By definition of hom-functors,
-\[\mathcal{C}(Ld,Lg)\ \mathrm{id}_{Ld}=Lg\circ\mathrm{id}_{Ld}=Lg=\mathrm{id}_{Ld'}\circ((Lg)^\mathrm{op})^\mathrm{op}=\mathcal{C}(L(g^\mathrm{op}),Ld')\ \mathrm{id}_{Ld'},\]
-\[\mathcal{D}(d,(R\circ L)g)\ \eta_d=((R\circ L) g)\circ\eta_d,\quad\mathcal{D}(g^\mathrm{op},(R\circ L)d')\ \eta_{d'}=\eta_{d'}\circ g,\]
+\(\mathcal{D}(*,R*)(*,d)\) is a functor that maps morphism \(Lg\) to \(\mathcal{D}(*,R*)(Lg,\mathrm{id}_d)\), which is a function that maps morphism \(\eta_d:\) to
+\[R(Lg)\circ \eta_d\circ(\mathrm{id}_d)^{\mathrm{op}}=R(Lg)\circ \eta_d.\]
 
-Therefore
-\[((R\circ L) g)\circ\eta_d=\eta_{d'}\circ g,\]
+Similarly,
+\[(\mathcal{D}(*,R*)(Ld',*)g^\mathrm{op})\eta_{d'}=R(\mathrm{id}_{Ld'})\circ\eta_{d'}\circ(g^{\mathrm{op}})^{\mathrm{op}}=\eta_{d'}\circ g,\]
+\[(\mathcal{C}(L*,*)(*,d)Lg)\mathrm{id}_{Ld}=Lg\circ\mathrm{id}_{Ld}\circ L(\mathrm{id}_d)^{\mathrm{op}}=Lg,\]
+\[(\mathcal{C}(L*,*)(Ld,*)g^{\mathrm{op}})\ \mathrm{id}_{Ld'}=\mathrm{id}_{Ld}\circ \mathrm{id}_{Ld'}\circ L(g^{\mathrm{op}})^{\mathrm{op}}=Lg,\]
+therefore
+\[R(Lg)\circ\eta_d=\eta_{d'}\circ g,\]
 therefore \(\eta\) is a natural transformation.
 
 Similarly, we can define
 \[\varepsilon=\{\varphi_{c,Rc}^{-1}\ \mathrm{id}_{Rc}\in \mathcal{C}(L(Rc),c)|c\in\mathrm{Ob}( \mathcal{C})\}\]
 and prove that it's a natural transformation.
 
-Finally, we need to prove that \(\varepsilon\) and \(\eta\) the two requirements.
+Finally, we need to prove that \(\varepsilon\) and \(\eta\) satisfies the two requirements.
 
-Because \(L\dashv R\), for every \(f:Ld\to c\), the diagram
+By diagram \ref{eq:adjunction-naturality}, for every \(f:Ld\to c\), the diagram
 \[
 \begin{CD}
 \mathcal{C}(Ld,Ld) @>\varphi_{Ld,d}>> \mathcal{D}(d,R(Ld)) \\
-@Vf_*VV @VV(Rf)_*V \\
+@V\mathcal{C}(Ld,f)VV @VV\mathcal{D}(d,Rf)V \\
 \mathcal{C}(Ld,c) @>>\varphi_{c,d}> \mathcal{D}(d,Rc)
 \end{CD}
 \]
 commutes. Using the same trick as above, we have
 \[\begin{aligned}
 & (\varphi_{c,d}\circ\mathcal{C}(Ld,f))\mathrm{id}_{Ld}=(\mathcal{D}(d,Rf)\circ\varphi_{Ld,d})\mathrm{id}_{Ld} \\
-& \Rightarrow \varphi_{c,d}(f\circ\mathrm{id}_{Ld})=\mathcal{D}(d,Rf)(\eta_d) \\
+& \Rightarrow \varphi_{c,d}(f\circ\mathrm{id}_{Ld}\circ L\mathrm{id}_{d})=\mathcal{D}(d,Rf)(\eta_d) \\
 & \Rightarrow \varphi_{c,d}(f)=Rf\circ\eta_d.
 \end{aligned}\]
 
@@ -393,13 +478,13 @@ Similarly, we have \(\varphi^{-1}_{c,d}(f)=\varepsilon_c\circ Lf\).
 
 Therefore we can let \(g=\varphi_{c,d}(f)\) in the second requirement and \(f=\varphi^{-1}_{c,d}(g)\) in the first requirement. The uniqueness is guaranteed because \(\varphi_{c,d}\) is isomorphism.
 
-(\(\eta,\varepsilon\Rightarrow\varphi\)) Given \(\eta,\varepsilon\), For every \(c\in\mathcal{C},d\in\mathcal{D}\), we can construct two mappings \(\varphi_{c,d}:\mathcal{C}(Ld,c)\to\mathcal{D}(d,Rc)\) and \(\psi_{c,d}:\mathcal{D}(d,Rc)\to\mathcal{C}(Ld,c)\) where:
-\[\varphi_{c,d}:f\mapsto Rf\circ\eta_d,\quad\psi_{c,d}:f\mapsto\varepsilon_c\circ Lf,\]
-and claim that:
-- (a) For every \(g:c\to c'\in \mathrm{Mor}( \mathcal{C}),h:d'\to d\in \mathrm{Mor}( \mathcal{D}^{ \mathrm{op}})\), diagram \eqref{eq:adjunction-naturality} commutes,
-- (b) \(\psi_{c,d}\circ \varphi_{c,d}= \mathrm{id}_{\mathcal{C}(Ld,c)},\varphi_{c,d}\circ\psi_{c,d}=\mathrm{id}_{\mathcal{D}(d,Rc)}\), therefore \( \varphi_{c,d}\) is an isomorphism.
+(\(\eta,\varepsilon\Rightarrow\varphi\)) Given \(\eta,\varepsilon\), For every \(c\in\mathcal{C},d\in\mathcal{D}\), we can construct a function \(\varphi_{c,d}:\mathcal{C}(Ld,c)\to\mathcal{D}(d,Rc)\) that maps \(f:Ld\to c\) to \(Rf\circ\eta_d\).
 
-(a) Because for every morphism \(f\in\mathcal{C}(Ld,c)\),
+The requirement 2 says that for every morphism \(g\in\mathcal{D}(d,Rc)\), there is exactly one morphism \(f\in\mathcal{C}(Ld,c)\) such that \(g=\varphi_{c,d}(f)\), therefore \(\varphi_{c,d}\) is a bijection and thus an isomorphism.
+
+Next we need to prove that for every \(g:c\to c'\in \mathrm{Mor}( \mathcal{C}),h:d'\to d\in \mathrm{Mor}( \mathcal{D}^{ \mathrm{op}})\), diagram \eqref{eq:adjunction-naturality} commutes.
+
+Because for every morphism \(f\in\mathcal{C}(Ld,c)\),
 \[
 \begin{aligned}
     (\mathcal{D}(d,Rg)\circ\varphi_{c,d})f & =\mathcal{D}(d,Rg)(Rf\circ\eta_d) \\
@@ -421,7 +506,7 @@ Because for every morphism \(f\in\mathcal{C}(Ld',c)\),
     & =Rf\circ(\eta_{d'}\circ h^{ \mathrm{op}}) \\
     & =Rf\circ((R\circ L)h^{ \mathrm{op}}\circ\eta_d) & (\text{see diagram \eqref{eq:eta-naturality}}) \\
     & =R(f\circ L(h^{ \mathrm{op}}))\circ\eta_d & (\text{by functorality}) \\
-    & =R(f\circ (L^{\mathrm{op}}h)^{ \mathrm{op}})\circ\eta_d & (\text{note that }h\in \mathrm{Mor}( \mathcal{C}^{ \mathrm{op}})) \\
+    & =R(f\circ (L^{\mathrm{op}}h)^{ \mathrm{op}})\circ\eta_d & (\text{note that }h\in \mathrm{Mor}( \mathcal{D}^{ \mathrm{op}})) \\
     & =\varphi_{c,d}(f\circ(L^{ \mathrm{op}}h)^{ \mathrm{op}}) \\
     & =(\varphi_{c,d}\circ\mathcal{D}(L^{ \mathrm{op}}h,c))f,
 \end{aligned}
@@ -437,56 +522,8 @@ d @>h^{ \mathrm{op}}>> d' \\
 
 Therefore the second diagram commutes.
 
-(b) Let \(c=Ld,f=\mathrm{id}_{Ld}\) in the requirement 1, then we have: there is a unique morphism \(g:d\to R(Ld)\) such that \(\mathrm{id}_{Ld}=\varepsilon_{Ld}\circ Lg\). Because \(\eta_d:d\to R(Ld)\), therefore \(\eta_d=g\) and
-\[\mathrm{id}_{Ld}=\varepsilon_{Ld}\circ L\eta_d.\tag{eq:triangle-identity-L}\]
-
-Similarly,
-\[\mathrm{id}_{Rc}=R\varepsilon_c\circ\eta_{Rc}.\tag{eq:triangle-identity-R}\]
-
-For every \(c\in\mathcal{C},d\in\mathcal{D},f\in \mathcal{C}(Ld,c)\),
-\[
-\begin{aligned}
-    (\psi_{c,d}\circ \varphi_{c,d})f & =\varepsilon_c\circ L(Rf\circ\eta_d) \\
-    & =(\varepsilon_c\circ L(Rf))\circ L(\eta_d) \\
-    & =(f\circ\varepsilon_{Ld})\circ L(\eta_d) & (\text{see diagram \eqref{eq:epsilon-naturality}}) \\
-    & =f\circ(\varepsilon_{Ld}\circ L(\eta_d)) \\
-    & =f, & (\text{by \eqref{eq:triangle-identity-L}})
-\end{aligned}
-\]
-where the diagram \eqref{eq:epsilon-naturality} commutes by the naturality of \(\varepsilon\):
-\[
-\begin{CD}
-(L\circ R\circ L)d @>>(L\circ R)f> (L\circ R)c \\
-@V\varepsilon_{Ld} VV @VV\varepsilon_c V \\
-Ld @>f>> c
-\end{CD}
-\tag{eq:epsilon-naturality}\]
-
-For every \(c\in\mathcal{C},d\in\mathcal{D},f\in \mathcal{D}(d,Rc)\),
-\[
-\begin{aligned}
-    (\varphi_{c,d}\circ \psi_{c,d})(f) & =R(\varepsilon_c\circ Lf')\circ\eta_d \\
-    & =R(\varepsilon_c)\circ(R(Lf')\circ\eta_d) \\
-    & =R(\varepsilon_c)\circ(\eta_{Rc}\circ f') & (\text{see diagram \eqref{eq:eta-naturality-morphism}}) \\
-    & =(R(\varepsilon_c)\circ\eta_{Rc})\circ f'=f' & (\text{by \eqref{eq:triangle-identity-R}})
-\end{aligned}
-\]
-where the diagram \eqref{eq:eta-naturality-morphism} commutes by the naturality of \(\eta\):
-\[
-\begin{CD}
-d @>f>> Rc \\
-@V\eta_{d} VV @VV\eta_{Rc} V \\
-(R\circ L)d @>>(R\circ L)f> (R\circ L\circ R)c
-\end{CD}
-\tag{eq:eta-naturality-morphism}\]
-
-Therefore \( \varphi_{c,d}\) is isomorphism. \(\Box\)
-
 There is a useful by-product of the proof:
 
 **Corollary.**\label{cor:adjunction-formula} Let \(\eta,\varepsilon\) be the unit and counit of the adjunction pair \((L,R,\varphi)\), then
-\[\varphi_{c,d}(f)=Rf\circ\eta_d,\quad\varphi^{-1}_{c,d}(f)=\varepsilon_c\circ Lf,\]
-\[\mathrm{id}_{Ld}=\varepsilon_{Ld}\circ L\eta_d,\quad\mathrm{id}_{Rc}=R\varepsilon_c\circ\eta_{Rc}.\]
-
-The last two equations are called *triangle identities* with reasons I can't explain without introducing horizontal composition.
+\[\varphi_{c,d}(f)=Rf\circ\eta_d,\quad\varphi^{-1}_{c,d}(f)=\varepsilon_c\circ Lf.\]
 
