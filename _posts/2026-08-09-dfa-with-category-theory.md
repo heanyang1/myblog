@@ -90,7 +90,7 @@ A category may contain some special objects whose definition involves every othe
 
 The *terminal object* in \( \mathcal{C}\) is the initial object in \( \mathcal{C}^{ \mathrm{op}}\), which essentially means for every \(c'\in \mathrm{Ob}( \mathcal{C})\), there is a unique morphism \(c'\to c\).
 
-The initial and terminal of two objects are unique up to isomorphism, i.e. if both \(c\) and \(c'\) are initial/terminal object in \( \mathcal{C}\), then \(c\) and \(c'\) are isomorphic.
+The initial and terminal of two objects are unique up to unique isomorphism, i.e. if both \(c\) and \(c'\) are initial/terminal object in \( \mathcal{C}\), then there exists a unique morphism \(f:c\to c'\) and \(g:c'\to c\) such that \(g\circ f= \mathrm{id}_c\) and \(f\circ g= \mathrm{id}_{c'}\).
 
 *proof.* By definition of initial object, there is a unique morphism \(f:c\to c'\), \(g:c'\to c\), \( \mathrm{id}_c:c\to c\), and \( \mathrm{id}_{c'}:c'\to c'\).
 
@@ -102,9 +102,9 @@ Initial and terminal objects may not exist in general, but they always exist in 
 
 **Products and coproducts.** Let \( \mathcal{C}\) be a category and \(A\) be the set of its objects. The *product* over \(A\) is an object \(x\) such that
 1. For every \(a\in A\), there is a morphism \(f_a:x\to a\),
-2. For every \(b\in \mathrm{Ob}( \mathcal{C})\), if for every \(a\in A\), there is a morphism \(g_a:b\to a\), then there is a unique morphism \(f:b\to x\) such that for every \(a\in A\), \(g_a=f_a\circ f\).
+2. For every \(b\in \mathrm{Ob}( \mathcal{C})\) with morphisms \(g_a:b\to a\) for every \(a\in A\), there is a unique morphism \(f:b\to x\) such that for every \(a\in A\), \(g_a=f_a\circ f\).
 
-The product is unique up to isomorphism, therefore we can use a symbol \(\prod A\) to define it.
+Similar to the initial/terminal object, the product is unique up to unique isomorphism, therefore we can use a symbol \(\prod A\) to define it.
 
 \(x\) is the *coproduct* over a set \(A\) (denoted as \(\coprod A\)) iff \(x=\prod A\) in \( \mathcal{C}^{ \mathrm{op}}\).
 
