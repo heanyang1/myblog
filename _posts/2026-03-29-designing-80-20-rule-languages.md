@@ -162,7 +162,7 @@ That's why people usually describe Zipf's law using straight lines in log-log di
 ### Frequency Ranking and Fibonacci Numbers
 
 To know what the \(i^{\text{th}}\) word is, we should sort all the words in our language according to its frequency. The probability of a word with \(s\) \(a\)s and \(t\) \(b\)s (and a space) appearing in a text is
-\[\mathrm{Pr}(a)^j\mathrm{Pr}(b)^k\mathrm{Pr}(\text{[space]})=p^{s+2t}(1-p-p^2).\]
+\[\mathrm{Pr}(a)^s\mathrm{Pr}(b)^t\mathrm{Pr}(\text{[space]})=p^{s+2t}(1-p-p^2).\]
 
 We can generate the list of words ordered by their frequencies:
 \[\begin{aligned}
